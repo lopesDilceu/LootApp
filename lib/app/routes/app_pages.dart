@@ -1,15 +1,22 @@
 // lib/app/routes/app_pages.dart
 import 'package:get/get.dart';
+import 'package:loot_app/app/bindings/splash_binding.dart';
 import 'package:loot_app/app/screens/auth/register_screen.dart';
 import 'package:loot_app/app/screens/home/home_screen.dart';
 import 'package:loot_app/app/bindings/home_binding.dart';
 import 'package:loot_app/app/screens/auth/login_screen.dart'; // Crie este arquivo
 import 'package:loot_app/app/bindings/auth_binding.dart';   // Crie este arquivo
+import 'package:loot_app/app/screens/splash/splash_screen.dart';
 
 import 'app_routes.dart';
 
 class AppPages {
   static final List<GetPage> pages = [
+    GetPage(
+      name: AppRoutes.SPLASH,
+      page: () => const SplashScreen(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: AppRoutes.HOME,
       page: () => const HomeScreen(),

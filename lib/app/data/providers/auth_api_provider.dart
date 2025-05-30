@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart'; // Para Cores no Get.snackbar
 import 'package:get/get.dart';
+import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
 import 'package:loot_app/app/data/models/user_model.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart'; // **IMPORTANTE: Crie este arquivo!**
 
@@ -50,7 +51,7 @@ class AuthApiProvider extends GetConnect {
   }
 
   // Método para Login
-  Future<User?> login({required String email, required String password}) async {
+  Future<AuthResponse?> login({required String email, required String password}) async {
     const String loginEndpoint = "login/"; // Confirme seu endpoint
     print("[AuthApiProvider] Iniciando login para: $email");
     print("[AuthApiProvider] URL: ${httpClient.baseUrl}$loginEndpoint");
@@ -91,7 +92,7 @@ class AuthApiProvider extends GetConnect {
             // TODO: SALVAR O TOKEN DE FORMA SEGURA AQUI!
             // Ex: await _storageService.saveToken(token);
 
-            return user;
+            return AuthResponse(user: user, token: token);
           } catch (e) {
             print(
               "[AuthApiProvider] ERRO ao parsear User.fromJson ou token: $e",
@@ -159,7 +160,7 @@ class AuthApiProvider extends GetConnect {
   }
 
   // Método para Cadastro
-  Future<User?> register({
+  Future<AuthResponse?> register({
     required String firstName,
     required String lastName,
     required String email,
@@ -191,7 +192,7 @@ class AuthApiProvider extends GetConnect {
           // Ex: await _storageService.saveToken(token);
           // Ex: await _storageService.saveUser(user);
 
-          return user;
+          return AuthResponse(user: user, token: token);
         } else {
           Get.snackbar(
             "Erro de Cadastro",

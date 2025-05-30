@@ -1,6 +1,7 @@
 // lib/app/controllers/login_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
 import 'package:loot_app/app/data/models/user_model.dart'; // Seu modelo de usuário
 import 'package:loot_app/app/data/providers/auth_api_provider.dart'; // Seu provider da API
 import 'package:loot_app/app/routes/app_routes.dart';
@@ -64,7 +65,7 @@ class LoginController extends GetxController {
     if (loginFormKey.currentState!.validate()) {
       isLoading.value = true;
       try {
-        User? user = await _authApiProvider.login(
+        AuthResponse? user = await _authApiProvider.login(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );

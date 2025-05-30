@@ -1,6 +1,7 @@
 // lib/app/controllers/register_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
 import 'package:loot_app/app/data/models/user_model.dart'; // Seu User model
 import 'package:loot_app/app/data/providers/auth_api_provider.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
@@ -79,7 +80,7 @@ class RegisterController extends GetxController {
       isLoading.value = true;
       try {
         // O Role.user é assumido aqui, ajuste se necessário ou se vier do formulário
-        User? user = await _authApiProvider.register(
+        AuthResponse? user = await _authApiProvider.register(
           firstName: firstNameController.text.trim(),
           lastName: lastNameController.text.trim(),
           email: emailController.text.trim(),
