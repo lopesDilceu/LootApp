@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
 import 'package:loot_app/app/data/providers/auth_api_provider.dart'; // Seu provider da API
 import 'package:loot_app/app/routes/app_routes.dart';
+import 'package:loot_app/app/services/auth/auth_service.dart';
 // Importe seu serviço de storage se for salvar tokens/dados do usuário
 // import 'package:loot_app/app/services/storage_service.dart';
 
@@ -60,48 +61,48 @@ class LoginController extends GetxController {
 
   // Método para realizar o login
   Future<void> loginUser() async {
-    // Verifica se o formulário é válido
     if (loginFormKey.currentState!.validate()) {
       isLoading.value = true;
+      print("[LoginController] Formulário validado. Chamando _authApiProvider.login().");
       try {
-        AuthResponse? user = await _authApiProvider.login(
+        // _authApiProvider.login() agora retorna AuthResponse?
+        AuthResponse? authResponse = await _authApiProvider.login(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
 
-        if (user != null) {
-          // Sucesso no login!
-          // TODO: Salvar o token do usuário (ex: user.rememberToken ou JWT retornado pela API)
-          // de forma segura usando um serviço como flutter_secure_storage (via StorageService).
-          // Ex: await _storageService.saveToken(apiResponse.token);
-          // Ex: await _storageService.saveUserCredentials(user.email, user.id); // Ou dados do usuário
+        print("[LoginController] authResponse recebido do provider: ${authResponse == null ? 'NULO' : 'RECEBIDO'}");
+
+        if (authResponse != null) {
+          print("[LoginController] Login BEM-SUCEDIDO via provider. Chamando AuthService.to.loginUserSession().");
+          // VVVVVV ESTA É A CHAMADA CRUCIAL VVVVVV
+          await AuthService.to.loginUserSession(authResponse.user, authResponse.token);
+          // VVVVVV FIM DA CHAMADA CRUCIAL VVVVVV
+          print("[LoginController] AuthService.to.loginUserSession() CONCLUÍDO.");
 
           Get.snackbar(
             'Sucesso!',
-            'Login realizado com sucesso. Bem-vindo(a) ${user.firstName}!',
+            'Login realizado com sucesso. Bem-vindo(a) ${authResponse.user.firstName}!',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green,
             colorText: Colors.white,
           );
-          // Navega para a tela principal do app após o login
-          // Substitua AppRoutes.HOME pela sua tela principal logada (ex: AppRoutes.DEALS_LIST)
-          Get.offAllNamed(AppRoutes.HOME); // Ou a tela principal da sua área logada
+          // Navega para a tela principal LOGADA (ex: DealsListScreen)
+          Get.offAllNamed(AppRoutes.DEALS_LIST);
+        } else {
+          print("[LoginController] Login FALHOU: _authApiProvider.login() retornou null.");
+          // O AuthApiProvider já deve ter mostrado um Snackbar de erro se authResponse for null.
         }
-        // Se user for null, o _authApiProvider.login já deve ter mostrado um Get.snackbar de erro.
-        // Caso contrário, adicione um Get.snackbar de erro genérico aqui.
-
-      } catch (e) {
-        Get.snackbar(
-          'Erro de Login',
-          'Ocorreu um erro inesperado. Tente novamente.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        print("Login error: $e"); // Para debug
+      } catch (e, stackTrace) {
+        print("[LoginController] EXCEÇÃO ao chamar _authApiProvider.login() ou AuthService: $e");
+        print("[LoginController] StackTrace da exceção: $stackTrace");
+        Get.snackbar('Erro de Login', 'Ocorreu um erro: ${e.toString()}',
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       } finally {
         isLoading.value = false;
       }
+    } else {
+      print("[LoginController] Formulário INVÁLIDO.");
     }
   }
 

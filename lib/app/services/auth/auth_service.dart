@@ -1,3 +1,4 @@
+// lib/app/services/auth_service.dart
 import 'dart:convert'; // Para jsonEncode e jsonDecode
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
@@ -12,34 +13,30 @@ class AuthService extends GetxService {
   final RxnString authToken = RxnString();
   final RxBool isAuthenticated = false.obs;
   
-
-  // Flag para saber se a inicialização async está completa
   final RxBool _isInitialized = false.obs;
   bool get isServiceInitialized => _isInitialized.value;
 
-  // Método de inicialização assíncrono customizado
+  // Getter para conveniência e clareza
+  bool get isLoggedIn => isAuthenticated.value;
+
   Future<AuthService> init() async {
     print("[AuthService] Método init() customizado - INÍCIO");
     try {
       await tryAutoLogin();
-    } catch (e, stackTrace) { // Captura a exceção e o stack trace
+    } catch (e, stackTrace) {
       print("[AuthService] ERRO CRÍTICO DENTRO DE init() ao chamar tryAutoLogin: $e");
       print("[AuthService] StackTrace do erro em init(): $stackTrace");
-      // Mesmo com erro no tryAutoLogin, precisamos marcar como inicializado
-      // para não travar o Get.putAsync, mas o estado de autenticado será false.
       isAuthenticated.value = false; 
     }
     _isInitialized.value = true;
-    print("[AuthService] Método init() customizado - FIM. Autenticado: ${isAuthenticated.value}");
+    print("[AuthService] Método init() customizado - FIM. Autenticado: ${isAuthenticated.value}"); // Use .value aqui
     return this;
   }
 
-  // onInit é chamado automaticamente por GetX, mas não colocaremos async pesado aqui
   @override
   void onInit() {
     super.onInit();
     print("[AuthService] GetxService onInit() chamado (síncrono).");
-    // O init() customizado será chamado explicitamente pelo Get.putAsync
   }
 
   Future<void> tryAutoLogin() async {
@@ -50,7 +47,7 @@ class AuthService extends GetxService {
     try {
       print("[AuthService] tryAutoLogin - Lendo 'authToken' do secureStorage...");
       storedToken = await _secureStorage.read(key: 'authToken');
-      print("[AuthService] tryAutoLogin - 'authToken' lido: ${storedToken != null ? 'ENCONTRADO' : 'NULO'}");
+      print("[AuthService] tryAutoLogin - 'authToken' lido: ${storedToken != null ? 'ENCONTRADO (${storedToken.substring(0,5)}...)' : 'NULO'}");
 
       print("[AuthService] tryAutoLogin - Lendo 'userJson' do secureStorage...");
       storedUserJson = await _secureStorage.read(key: 'userJson');
@@ -60,8 +57,8 @@ class AuthService extends GetxService {
       print("[AuthService] tryAutoLogin - ERRO AO LER DO SECURESTORAGE: $e");
       print("[AuthService] StackTrace do erro no secureStorage: $stackTrace");
       isAuthenticated.value = false;
-      print("[AuthService] tryAutoLogin - FIM (devido a erro no storage)");
-      return; // Sai do método se houver erro na leitura do storage
+      print("[AuthService] tryAutoLogin - FIM (devido a erro na leitura do storage)");
+      return;
     }
 
     if (storedToken != null && storedUserJson != null) {
@@ -75,45 +72,54 @@ class AuthService extends GetxService {
       } catch (e, stackTrace) {
         print("[AuthService] tryAutoLogin - ERRO AO DECODIFICAR/PARSEAR UserJson: $e");
         print("[AuthService] StackTrace do erro no parse: $stackTrace");
-        // Limpar dados potencialmente corruptos
         try {
-          print("[AuthService] tryAutoLogin - Limpando dados (potencialmente corruptos) do storage...");
           await _secureStorage.delete(key: 'authToken');
           await _secureStorage.delete(key: 'userJson');
-          print("[AuthService] tryAutoLogin - Dados corruptos limpos.");
-        } catch (storageDeleteError, sdelStackTrace) {
-          print("[AuthService] tryAutoLogin - ERRO AO LIMPAR dados corruptos do storage: $storageDeleteError");
-          print("[AuthService] StackTrace do erro ao limpar storage: $sdelStackTrace");
-        }
+        } catch (delErr) { print("Erro ao limpar storage após parse error: $delErr");}
         isAuthenticated.value = false;
       }
     } else {
-      print("[AuthService] tryAutoLogin - Nenhum token ou userJson encontrado para auto-login.");
+      print("[AuthService] tryAutoLogin - Nenhum token ou userJson válido encontrado para auto-login.");
       isAuthenticated.value = false;
     }
-    print("[AuthService] tryAutoLogin - FIM");
+    print("[AuthService] tryAutoLogin - FIM. isAuthenticated: ${isAuthenticated.value}");
   }
 
   Future<void> loginUserSession(User user, String token) async {
+    print("[AuthService] loginUserSession - INÍCIO para usuário: ${user.email}");
     currentUser.value = user;
     authToken.value = token;
-    isAuthenticated.value = true;
+    isAuthenticated.value = true; // Define como logado na memória primeiro
 
     try {
-      print("[AuthService] Salvando token no secureStorage...");
+      print("[AuthService] loginUserSession - Tentando salvar 'authToken': $token");
       await _secureStorage.write(key: 'authToken', value: token);
-      print("[AuthService] Token salvo.");
-      print("[AuthService] Salvando userJson no secureStorage...");
-      await _secureStorage.write(key: 'userJson', value: jsonEncode(user.toJson()));
-      print("[AuthService] userJson salvo.");
+      print("[AuthService] loginUserSession - 'authToken' salvo (ou tentativa concluída).");
+
+      final userJson = jsonEncode(user.toJson());
+      print("[AuthService] loginUserSession - Tentando salvar 'userJson': $userJson");
+      await _secureStorage.write(key: 'userJson', value: userJson);
+      print("[AuthService] loginUserSession - 'userJson' salvo (ou tentativa concluída).");
+
+      // Verificação imediata (para debug no web)
+      final checkToken = await _secureStorage.read(key: 'authToken');
+      final checkUser = await _secureStorage.read(key: 'userJson');
+      print("[AuthService] loginUserSession - Verificação APÓS write: Token: ${checkToken!=null}, User: ${checkUser!=null}");
+      if (checkToken == null || checkUser == null) {
+          print("[AuthService] loginUserSession - ALERTA: Falha ao persistir dados no secureStorage!");
+      }
+
     } catch (e, stackTrace) {
-      print("[AuthService] ERRO ao salvar no secureStorage em loginUserSession: $e");
+      print("[AuthService] loginUserSession - ERRO AO SALVAR NO SECURESTORAGE: $e");
       print("[AuthService] StackTrace do erro ao salvar: $stackTrace");
+      // Mesmo se falhar ao salvar, o usuário está logado na sessão atual em memória.
+      // Mas o auto-login não funcionará.
     }
-    print("[AuthService] Usuário ${user.email} logado. Token e userJson salvos (ou tentativa).");
+    print("[AuthService] loginUserSession - FIM. isAuthenticated: ${isAuthenticated.value}");
   }
 
   Future<void> logout() async {
+    // ... (seu método logout com logs como estava antes) ...
     currentUser.value = null;
     authToken.value = null;
     isAuthenticated.value = false;
@@ -130,5 +136,4 @@ class AuthService extends GetxService {
     print("[AuthService] Usuário deslogado.");
     Get.offAllNamed(AppRoutes.LOGIN); 
   }
-
 }
