@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/controllers/deals_controller.dart';
 import 'package:loot_app/app/widgets/common/app_bar.dart';
-import 'package:loot_app/app/data/models/deal_model.dart'; // Para o tipo DealModel
+import 'package:loot_app/app/data/models/deal_model.dart';
+import 'package:loot_app/app/widgets/deals/deals_filter_widget.dart'; // Para o tipo DealModel
 // Importe seu DealCardWidget se o tiver criado
 // import 'package:loot_app/app/widgets/deals/deal_card_widget.dart'; 
 
@@ -28,7 +29,25 @@ class DealsListScreen extends GetView<DealsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonAppBar(title: 'Promoções de Jogos'),
+      appBar: CommonAppBar(
+        title: 'Promoções de Jogos',
+        customActions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list_alt), // Ícone de filtro
+            tooltip: "Filtrar Promoções",
+            onPressed: () {
+              Get.bottomSheet(
+                DealsFilterWidget(), // << USA O NOVO WIDGET AQUI
+                isScrollControlled: true, // Permite que o BottomSheet use mais da metade da tela
+                ignoreSafeArea: false, // Respeita a safe area inferior
+                // backgroundColor: Colors.transparent, // Opcional, se DealsFilterWidget já tem cor
+              );
+            },
+          ),
+          const SizedBox(width: 8), // Espaçamento para o menu de usuário na AppBar
+        ],
+      ),
+      
       body: RefreshIndicator(
         onRefresh: controller.refreshDealsList,
         child: Column(

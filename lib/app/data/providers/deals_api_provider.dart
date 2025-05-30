@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart'; // Para Colors no Get.snackbar
 import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
+import 'package:loot_app/app/data/models/store_model.dart';
 
 class DealsApiProvider extends GetConnect {
   final String _cheapSharkBaseUrl = "https://www.cheapshark.com/api/1.0";
@@ -13,55 +14,68 @@ class DealsApiProvider extends GetConnect {
     // Não é necessária chave de API para o endpoint /deals do CheapShark
   }
 
+    Future<List<StoreModel>> getStores() async {
+    print("[DealsApiProvider] Buscando lista de lojas...");
+    try {
+      final response = await get("/stores");
+      if (response.statusCode == 200 && response.body != null && response.body is List) {
+        final List<dynamic> storesJson = response.body;
+        return storesJson
+            .map((json) => StoreModel.fromJson(json as Map<String, dynamic>))
+            .where((store) => store.isActive) // Opcional: filtrar apenas lojas ativas
+            .toList();
+      } else {
+        print("[DealsApiProvider] Erro ao buscar lojas: ${response.statusCode} - ${response.statusText}");
+        Get.snackbar("Erro API", "Falha ao carregar lista de lojas.", snackPosition: SnackPosition.BOTTOM);
+        return [];
+      }
+    } catch (e) {
+      print("[DealsApiProvider] Exceção ao buscar lojas: $e");
+      Get.snackbar("Erro de Rede", "Não foi possível buscar lista de lojas.", snackPosition: SnackPosition.BOTTOM);
+      return [];
+    }
+  }
+
   Future<List<DealModel>> getDeals({
     int pageNumber = 0,
     int pageSize = 30,
-    String sortBy = 'Deal Rating',
+    String? sortBy, // Tornando opcional para usar o default da API ou o do controller
     bool onSale = true,
-    String? storeID,
-    String? title, // <<< NOVO PARÂMETRO para a query de busca
+    String? title,
+    List<String>? storeIDs, // Lista de IDs de lojas para filtrar
+    String? lowerPrice,     // Preço mínimo
+    String? upperPrice,     // Preço máximo
+    String? metacritic,     // Score mínimo do Metacritic
+    // Adicione outros parâmetros de filtro da API do CheapShark conforme necessário
   }) async {
     final Map<String, String> queryParams = {
       'pageNumber': pageNumber.toString(),
       'pageSize': pageSize.toString(),
-      'sortBy': sortBy,
       'onSale': onSale ? '1' : '0',
     };
-    if (storeID != null && storeID.isNotEmpty) {
-      queryParams['storeID'] = storeID;
-    }
-    if (title != null && title.trim().isNotEmpty) { // <<< ADICIONA O TÍTULO À QUERY
-      queryParams['title'] = title.trim();
-    }
+    if (sortBy != null && sortBy.isNotEmpty) queryParams['sortBy'] = sortBy;
+    if (title != null && title.trim().isNotEmpty) queryParams['title'] = title.trim();
+    if (storeIDs != null && storeIDs.isNotEmpty) queryParams['storeID'] = storeIDs.join(','); // API espera IDs separados por vírgula
+    if (lowerPrice != null && lowerPrice.isNotEmpty) queryParams['lowerPrice'] = lowerPrice;
+    if (upperPrice != null && upperPrice.isNotEmpty) queryParams['upperPrice'] = upperPrice;
+    if (metacritic != null && metacritic.isNotEmpty) queryParams['metacritic'] = metacritic;
 
     print("[DealsApiProvider] Buscando promoções com params: $queryParams");
     // ... o resto do método (try-catch, chamada API, parsing) continua igual ...
     // Lembre-se de tratar a resposta e erros como já estava fazendo.
     try {
       final response = await get("/deals", query: queryParams);
-
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200) { // ... (lógica de parsing como antes)
         if (response.body != null && response.body is List) {
           final List<dynamic> dealsJson = response.body;
-          if (dealsJson.isEmpty && pageNumber > 0 && title == null) { // Não considerar fim da lista para buscas
-            print("[DealsApiProvider] Nenhuma promoção encontrada para a página $pageNumber (pode ser o fim da lista).");
-            return [];
-          }
           return dealsJson.map((json) => DealModel.fromJson(json as Map<String, dynamic>)).toList();
-        } else {
-          print("[DealsApiProvider] Resposta de promoções não é uma lista ou está nula. Body: ${response.bodyString}");
-          return [];
-        }
-      } else {
-        print("[DealsApiProvider] Erro ao buscar promoções: ${response.statusCode} - ${response.statusText}");
-        Get.snackbar("Erro de API", "Falha ao carregar promoções (Status: ${response.statusCode})",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange, colorText: Colors.white);
-        return [];
+        } else { return []; }
+      } else { 
+        Get.snackbar("Erro API (${response.statusCode})", "Falha ao carregar promoções.", snackPosition: SnackPosition.BOTTOM);
+        return []; 
       }
     } catch (e) {
-      print("[DealsApiProvider] Exceção ao buscar promoções: $e");
-      Get.snackbar("Erro de Rede", "Não foi possível conectar ao servidor de promoções.",
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Erro de Rede", "Não foi possível buscar promoções.", snackPosition: SnackPosition.BOTTOM);
       return [];
     }
   }
