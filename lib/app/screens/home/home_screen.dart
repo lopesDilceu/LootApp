@@ -1,88 +1,143 @@
-// lib/app/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/controllers/home_controller.dart';
-import 'package:loot_app/app/widgets/common/app_bar.dart'; // Verifique o caminho
+import 'package:loot_app/app/widgets/common/app_bar.dart';
+// Importe um widget para exibir o card da promoção, se tiver um.
+// Ex: import 'package:loot_app/app/widgets/deals/deal_card_widget.dart';
+import 'package:loot_app/app/data/models/deal_model.dart'; // Para usar DealModel no itemBuilder
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
 
+  Widget _buildDealCard(DealModel deal) { // Widget de card de promoção simples
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+      elevation: 2,
+      child: InkWell(
+        onTap: () {
+          // TODO: Implementar navegação para detalhes da promoção ou abrir link externo
+          print("Promoção tocada: ${deal.title}");
+          // Exemplo: Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal.dealID);
+          // ou usar url_launcher para abrir o link da promoção
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Image.network(
+                deal.thumb,
+                width: 100,
+                height: 50, // Ajuste conforme a proporção da imagem do CheapShark
+                fit: BoxFit.contain, // Ou BoxFit.cover
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.image_not_supported, size: 50),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      deal.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text("Loja: ${deal.storeName}", style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                    Text(
+                      "Economia: ${deal.savingsPercentage.toStringAsFixed(0)}%",
+                      style: TextStyle(fontSize: 12, color: Colors.orange[800]),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                "\$${deal.salePrice}",
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.green),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    print("[HomeScreen] build chamado. Usuário Logado: ${controller.authService.isLoggedIn}");
     return Scaffold(
       appBar: const CommonAppBar(
-        title: 'Bem-vindo ao Loot!',
-        showBackButton: false, // Geralmente a home não tem botão de voltar
+        title: 'Loot - Ofertas', // Título para a home pública
+        // showBackButton: false, // O logo agora é o botão de home
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+      body: RefreshIndicator(
+        onRefresh: controller.refreshHomepageDeals, // Para puxar e atualizar
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // TODO: Adicionar seu logo aqui!
-              // Exemplo:
-              // Image.asset(
-              //  'assets/images/loot_logo.png', // Crie esta pasta e adicione seu logo
-              //  height: 150,
-              //  errorBuilder: (context, error, stackTrace) { // Fallback se a imagem não carregar
-              //    return const Icon(Icons.shopping_bag_outlined, size: 120, color: Colors.grey);
-              //  },
-              // ),
-              const Icon(Icons.shopping_bag_outlined, size: 120, color: Colors.grey), // Placeholder
+            children: [
+              Obx(() => Text(
+                    controller.authService.isLoggedIn
+                        ? 'Olá, ${controller.authService.currentUser.value?.firstName ?? 'Jogador(a)'}! Confira as novidades:'
+                        : '🔥 Promoções em Destaque',
+                    textAlign: TextAlign.center,
+                    style: Get.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  )),
+              const SizedBox(height: 20),
+
+              // Seção de Promoções em Destaque
+              Obx(() {
+                if (controller.isLoadingDeals.value && controller.topDeals.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (controller.topDeals.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 30.0),
+                      child: Text("Nenhuma promoção em destaque no momento. Tente atualizar!"),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.topDeals.length,
+                  itemBuilder: (context, index) {
+                    final deal = controller.topDeals[index];
+                    return _buildDealCard(deal); // Usando o widget de card
+                  },
+                );
+              }),
               const SizedBox(height: 40),
-              Text(
-                'Sua Caçada por Promoções Começa Aqui!',
-                textAlign: TextAlign.center,
-                style: Get.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                'Descubra as melhores ofertas de jogos e economize na sua próxima aventura gamer.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 60),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  // backgroundColor: Colors.amber, // Exemplo de cor
-                  // foregroundColor: Colors.black, // Exemplo de cor
-                ),
-                onPressed: controller.navigateToLogin, // Chama o método do controller
-                child: const Text('Acessar / Cadastrar'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final storage = const FlutterSecureStorage();
-                  const testKey = 'myWebTestKey';
-                  const testValue = 'HelloWebStorage123';
-                  try {
-                    print("WEB_STORAGE_TEST: Tentando escrever...");
-                    await storage.write(key: testKey, value: testValue);
-                    print("WEB_STORAGE_TEST: Escrita (tentativa) concluída.");
 
-                    // Verifique o localStorage no DevTools do navegador aqui!
-                    // Deve haver uma chave como flutter_secure_storage.myWebTestKey (o prefixo pode variar)
-
-                    final readValue = await storage.read(key: testKey);
-                    print("WEB_STORAGE_TEST: Valor lido: $readValue");
-
-                    if (readValue == testValue) {
-                      Get.snackbar("Teste Storage Web", "Sucesso: Escreveu e Leu!", backgroundColor: Colors.green);
-                    } else {
-                      Get.snackbar("Teste Storage Web", "Falha: Valor lido ($readValue) diferente do escrito ($testValue)", backgroundColor: Colors.red);
-                    }
-                  } catch (e) {
-                    print("WEB_STORAGE_TEST: EXCEÇÃO: $e");
-                    Get.snackbar("Teste Storage Web", "EXCEÇÃO: $e", backgroundColor: Colors.orange);
-                  }
-                },
-                child: Text("Testar Secure Storage Web"),
-              )
+              // Botão de Ação (Login/Cadastro ou Ver Todas as Promoções)
+              Obx(() {
+                if (controller.authService.isLoggedIn) {
+                  return ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: controller.navigateToDealsList,
+                    child: const Text('Ver Todas as Promoções'),
+                  );
+                } else {
+                  return ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: controller.navigateToLogin,
+                    child: const Text('Acessar / Cadastrar para Mais'),
+                  );
+                }
+              }),
             ],
           ),
         ),

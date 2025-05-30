@@ -1,97 +1,129 @@
-// lib/app/controllers/deals_controller.dart
-import 'package:flutter/material.dart'; // Para ScrollController e Colors
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/data/providers/deals_api_provider.dart';
 
 class DealsController extends GetxController {
-  // Injeta o DealsApiProvider (deve estar registrado no DealsBinding ou globalmente)
   final DealsApiProvider _dealsApiProvider = Get.find<DealsApiProvider>();
 
-  var dealsList = <DealModel>[].obs; // Lista reativa de promoções
-  var isLoading = true.obs; // Para o carregamento inicial
-  var isLoadingMore = false.obs; // Para carregamento de mais itens na paginação
+  var dealsList = <DealModel>[].obs;
+  var isLoading = true.obs;
+  var isLoadingMore = false.obs;
   var currentPage = 0.obs;
-  var canLoadMoreDeals = true.obs; // Flag para saber se há mais páginas para carregar
+  var canLoadMoreDeals = true.obs;
 
-  final ScrollController scrollController = ScrollController(); // Para o scroll infinito
+  // Estado para a busca
+  var searchQuery = ''.obs;
+  var isSearching = false.obs; // Para diferenciar o modo de busca do modo de navegação normal
+  final TextEditingController searchTEC = TextEditingController();
+
+  final ScrollController scrollController = ScrollController();
 
   @override
   void onInit() {
     super.onInit();
-    fetchInitialDeals(); // Busca as promoções iniciais
-    scrollController.addListener(_onScroll); // Adiciona listener para o scroll
+    // Carrega as promoções iniciais (sem busca)
+    fetchDeals(isInitialLoad: true);
+    scrollController.addListener(_onScroll);
   }
 
   @override
   void onClose() {
     scrollController.removeListener(_onScroll);
-    scrollController.dispose(); // Libera o ScrollController
+    scrollController.dispose();
+    searchTEC.dispose();
     super.onClose();
   }
 
   void _onScroll() {
-    // Verifica se chegou ao final da lista, não está carregando mais e ainda pode carregar mais
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200 && // Trigger um pouco antes do final
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 300 &&
         !isLoadingMore.value &&
         canLoadMoreDeals.value) {
-      fetchMoreDeals();
+      fetchDeals(isLoadMore: true); // Carrega mais, respeitando o estado de busca
     }
   }
 
-  Future<void> fetchInitialDeals() async {
-    isLoading.value = true;
-    canLoadMoreDeals.value = true; // Reseta para permitir carregar mais
-    currentPage.value = 0; // Reseta a página
-    dealsList.clear(); // Limpa a lista para um refresh completo
-    print("[DealsController] Buscando promoções iniciais...");
-    try {
-      final newDeals = await _dealsApiProvider.getDeals(pageNumber: currentPage.value);
-      if (newDeals.isNotEmpty) {
-        dealsList.assignAll(newDeals);
-        currentPage.value++; // Prepara para a próxima página
-      } else {
-        // Nenhuma promoção encontrada na primeira busca ou API retornou vazio
-        canLoadMoreDeals.value = false;
-        print("[DealsController] Nenhuma promoção inicial encontrada.");
+  Future<void> fetchDeals({
+    bool isInitialLoad = false, 
+    bool isRefresh = false, 
+    bool isLoadMore = false,
+    String? specificTitleQuery, // Usado pela função de busca
+  }) async {
+    
+    final currentSearchTerm = specificTitleQuery ?? (isSearching.value ? searchQuery.value : null);
+
+    if (isInitialLoad || isRefresh) {
+      currentPage.value = 0;
+      dealsList.clear();
+      canLoadMoreDeals.value = true; // Reseta para permitir carregar mais
+      if (isRefresh && currentSearchTerm == null) { // Se for refresh da navegação normal
+        isSearching.value = false;
+        searchQuery.value = '';
+        searchTEC.clear();
       }
-    } catch (e) {
-      print("[DealsController] Erro ao buscar promoções iniciais: $e");
-      // O provider já mostra um snackbar, mas você pode adicionar um específico aqui se quiser
-    } finally {
-      isLoading.value = false;
+      isLoading.value = true;
+    } else if (isLoadMore) {
+      if (isLoadingMore.value || !canLoadMoreDeals.value) return;
+      isLoadingMore.value = true;
+    } else { // Chamada genérica, provavelmente um novo filtro ou busca
+      isLoading.value = true;
+      currentPage.value = 0;
+      dealsList.clear();
+      canLoadMoreDeals.value = true;
     }
-  }
+    
+    print("[DealsController] Buscando promoções. Query: '$currentSearchTerm', Página: ${currentPage.value}");
 
-  Future<void> fetchMoreDeals() async {
-    if (isLoadingMore.value || !canLoadMoreDeals.value) return; // Evita múltiplas chamadas
-
-    isLoadingMore.value = true;
-    print("[DealsController] Buscando mais promoções, página: ${currentPage.value}");
     try {
-      final newDeals = await _dealsApiProvider.getDeals(pageNumber: currentPage.value);
+      final newDeals = await _dealsApiProvider.getDeals(
+        pageNumber: currentPage.value,
+        title: currentSearchTerm, // Passa o termo de busca para o provider
+        // Outros filtros como sortBy, storeID podem ser adicionados aqui
+      );
+
       if (newDeals.isNotEmpty) {
-        dealsList.addAll(newDeals);
+        if (isInitialLoad || isRefresh || (isSearching.value && currentPage.value == 0 && specificTitleQuery != null)) {
+          dealsList.assignAll(newDeals);
+        } else if (isLoadMore) {
+          dealsList.addAll(newDeals);
+        }
         currentPage.value++;
       } else {
-        print("[DealsController] Não há mais promoções para carregar.");
-        canLoadMoreDeals.value = false; // Indica que não há mais páginas
+        if (isInitialLoad || isRefresh || (isSearching.value && currentPage.value == 0 && specificTitleQuery != null)) {
+           dealsList.clear(); // Limpa se a primeira busca/carga não retornar nada
+        }
+        canLoadMoreDeals.value = false; // Não há mais promoções para esta query/página
+        if (isSearching.value && specificTitleQuery != null && dealsList.isEmpty) {
+           Get.snackbar("Busca Concluída", "Nenhuma promoção encontrada para '${searchQuery.value}'.", snackPosition: SnackPosition.BOTTOM);
+        }
       }
     } catch (e) {
-      print("[DealsController] Erro ao buscar mais promoções: $e");
-      // Para "carregar mais", um snackbar pode ser intrusivo, talvez apenas um log.
+      print("[DealsController] Erro ao buscar promoções: $e");
+      // Tratar erro
     } finally {
+      isLoading.value = false;
       isLoadingMore.value = false;
     }
   }
 
-  // Método para ser chamado pelo Pull-to-Refresh na UI
-  Future<void> refreshDeals() async {
-    print("[DealsController] Atualizando promoções (pull-to-refresh)...");
-    await fetchInitialDeals();
+  void searchGamesByTitle(String title) {
+    if (title.trim().isEmpty) {
+      clearSearchAndFetchInitial();
+      return;
+    }
+    searchQuery.value = title.trim();
+    isSearching.value = true;
+    fetchDeals(isInitialLoad: true, specificTitleQuery: searchQuery.value); // Força um recarregamento com a nova query
   }
 
-  // TODO: Adicionar métodos para filtros (por loja, por nome do jogo, etc.)
-  // void filterByStore(String storeId) { ... }
-  // void searchDeals(String query) { ... }
+  void clearSearchAndFetchInitial() {
+    searchQuery.value = '';
+    searchTEC.clear();
+    isSearching.value = false;
+    fetchDeals(isRefresh: true); // Volta para as promoções normais
+  }
+
+  Future<void> refreshDealsList() async {
+    await fetchDeals(isRefresh: true, specificTitleQuery: isSearching.value ? searchQuery.value : null);
+  }
 }

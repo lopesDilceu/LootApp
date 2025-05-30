@@ -15,10 +15,11 @@ class DealsApiProvider extends GetConnect {
 
   Future<List<DealModel>> getDeals({
     int pageNumber = 0,
-    int pageSize = 30, // CheapShark permite até 60
-    String sortBy = 'Deal Rating', // Opções: 'Title', 'Savings', 'Price', 'Metacritic', 'Release', 'Store', 'recent'
-    bool onSale = true, // Por padrão, buscar apenas o que está em promoção
-    String? storeID, // Para filtrar por loja específica (ex: "1" para Steam)
+    int pageSize = 30,
+    String sortBy = 'Deal Rating',
+    bool onSale = true,
+    String? storeID,
+    String? title, // <<< NOVO PARÂMETRO para a query de busca
   }) async {
     final Map<String, String> queryParams = {
       'pageNumber': pageNumber.toString(),
@@ -29,28 +30,30 @@ class DealsApiProvider extends GetConnect {
     if (storeID != null && storeID.isNotEmpty) {
       queryParams['storeID'] = storeID;
     }
+    if (title != null && title.trim().isNotEmpty) { // <<< ADICIONA O TÍTULO À QUERY
+      queryParams['title'] = title.trim();
+    }
 
     print("[DealsApiProvider] Buscando promoções com params: $queryParams");
-
+    // ... o resto do método (try-catch, chamada API, parsing) continua igual ...
+    // Lembre-se de tratar a resposta e erros como já estava fazendo.
     try {
       final response = await get("/deals", query: queryParams);
 
       if (response.statusCode == 200) {
         if (response.body != null && response.body is List) {
           final List<dynamic> dealsJson = response.body;
-          if (dealsJson.isEmpty && pageNumber > 0) {
+          if (dealsJson.isEmpty && pageNumber > 0 && title == null) { // Não considerar fim da lista para buscas
             print("[DealsApiProvider] Nenhuma promoção encontrada para a página $pageNumber (pode ser o fim da lista).");
-            return []; // Fim da paginação ou sem resultados
+            return [];
           }
           return dealsJson.map((json) => DealModel.fromJson(json as Map<String, dynamic>)).toList();
         } else {
           print("[DealsApiProvider] Resposta de promoções não é uma lista ou está nula. Body: ${response.bodyString}");
-          return []; // Retorna lista vazia em caso de formato inesperado
+          return [];
         }
       } else {
         print("[DealsApiProvider] Erro ao buscar promoções: ${response.statusCode} - ${response.statusText}");
-        print("[DealsApiProvider] Corpo da Resposta: ${response.bodyString}");
-        // Poderia lançar uma exceção ou retornar lista vazia com snackbar
         Get.snackbar("Erro de API", "Falha ao carregar promoções (Status: ${response.statusCode})",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange, colorText: Colors.white);
         return [];
