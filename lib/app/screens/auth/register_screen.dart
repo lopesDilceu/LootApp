@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/controllers/auth/register_controller.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
+import 'package:loot_app/app/widgets/common/app_bar.dart';
 
 class RegisterScreen extends GetView<RegisterController> {
   const RegisterScreen({super.key});
@@ -10,10 +11,7 @@ class RegisterScreen extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Criar Conta - Loot'),
-        centerTitle: true,
-      ),
+      appBar: const CommonAppBar(title: 'Cadastro - Loot'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(

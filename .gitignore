@@ -1,45 +1,127 @@
 # Miscellaneous
 *.class
 *.log
+*.lock # Adicionado para arquivos de lock genéricos
 *.pyc
 *.swp
 .DS_Store
 .atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+.buildlog/ # Mantido do seu original
+.history # Mantido do seu original
+.svn/ # Mantido do seu original
+.swiftpm/ # Mantido do seu original
+migrate_working_dir/ # Mantido do seu original
 
-# IntelliJ related
+# IntelliJ related (já estava bom)
 *.iml
 *.ipr
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code
+# A pasta .vscode pode conter configurações de launch e tasks que você pode querer versionar.
+# Descomente a linha abaixo se quiser ignorá-la completamente.
 #.vscode/
 
 # Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
+.dart_tool
 .flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
+.packages # Arquivo legado, mas bom ter
+.pub-cache/ # Geralmente global, mas pode aparecer localmente
 .pub/
-/build/
+**/doc/api/ # Mantido do seu original
+**/ios/Flutter/.last_build_id # Mantido do seu original
 
-# Symbolication related
+# Buildทั่วไป (ignora qualquer pasta 'build' em qualquer lugar)
+**/build/
+
+# Symbolication related (mantido do seu original)
 app.*.symbols
 
-# Obfuscation related
+# Obfuscation related (mantido do seu original)
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Android
+#
+# Arquivos gerados pelo Android Studio/Gradle
+android/app/build/
+android/.gradle/
+android/gradle/ # Wrapper do Gradle
+android/gradlew
+android/gradlew.bat
+android/local.properties # Contém caminhos de SDK específicos da máquina
+android/key.properties # Se você armazena chaves de assinatura localmente (NÃO FAÇA COMMIT DISSO)
+# Os diretórios de debug/profile/release específicos são cobertos por android/app/build/
+# Seus originais:
+# /android/app/debug
+# /android/app/profile
+# /android/app/release
+
+# iOS & macOS
+#
+# Arquivos gerados pelo Xcode e CocoaPods
+ios/build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/podstuff.xcconfig
+ios/Flutter/ephemeral/ # Arquivos gerados pelo Flutter
+ios/.generated/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/
+ios/Runner.xcodeproj/xcshareddata/
+ios/Runner.xcworkspace/xcshareddata/
+*.hmap # Arquivos de cabeçalho pré-compilados
+*.xcscheme # Geralmente específico do usuário
+
+macos/build/
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+macos/Flutter/FlutterAssembledApp.framework
+macos/.generated/
+macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/
+macos/Runner.xcodeproj/xcshareddata/
+macos/Runner.xcworkspace/xcshareddata/
+macos/Runner/GeneratedPluginRegistrant.*
+
+# Linux
+linux/build/
+linux/CMakeCache.txt
+linux/CMakeFiles/
+linux/compile_commands.json
+linux/Makefile
+linux/cmake_install.cmake
+linux/flutter/ephemeral/
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugins.cmake
+*.so # Arquivos de objeto compartilhado
+
+# Windows
+windows/build/
+windows/CMakeCache.txt
+windows/CMakeFiles/
+windows/flutter/ephemeral/
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake
+windows/runner/Debug/
+windows/runner/Profile/
+windows/runner/Release/
+windows/.vs/ # Arquivos do Visual Studio
+# Arquivos gerados pelo MSBuild
+Debug/
+Release/
+Profile/
+*.obj
+*.pdb
+*.user
+*.aps
+*.vcxproj.user
+Generated.props
+Generated.targets

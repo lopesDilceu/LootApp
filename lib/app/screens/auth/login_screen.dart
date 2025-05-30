@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/controllers/auth/login_controller.dart';
+import 'package:loot_app/app/widgets/common/app_bar.dart';
 
 class LoginScreen extends GetView<LoginController> {
   const LoginScreen({super.key});
@@ -10,10 +11,7 @@ class LoginScreen extends GetView<LoginController> {
   Widget build(BuildContext context) {
     // O controller é injetado automaticamente pelo GetView através do AuthBinding
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login - Loot'),
-        centerTitle: true,
-      ),
+      appBar: const CommonAppBar(title: 'Login - Loot'),
       body: SingleChildScrollView( // Permite rolagem se o conteúdo for maior que a tela
         padding: const EdgeInsets.all(20.0),
         child: Form(

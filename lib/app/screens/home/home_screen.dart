@@ -1,7 +1,8 @@
 // lib/app/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:loot_app/app/controllers/home_controller.dart'; // Verifique o caminho
+import 'package:loot_app/app/controllers/home_controller.dart';
+import 'package:loot_app/app/widgets/common/app_bar.dart'; // Verifique o caminho
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
@@ -9,10 +10,9 @@ class HomeScreen extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bem-vindo ao Loot!'),
-        centerTitle: true,
-        // backgroundColor: Colors.amber, // Exemplo de cor, personalize no seu tema
+      appBar: const CommonAppBar(
+        title: 'Bem-vindo ao Loot!',
+        showBackButton: false, // Geralmente a home não tem botão de voltar
       ),
       body: Center(
         child: Padding(

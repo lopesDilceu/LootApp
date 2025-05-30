@@ -13,10 +13,10 @@ void main() async {
 
 Future<void> initializeServices() async {
   print("Inicializando serviços...");
-  await Get.putAsync(() => AuthService().onInit()); // Chama onInit do AuthService
-  // Coloque outros Get.put para serviços globais aqui, se necessário
-  // Ex: Get.put(ApiProvider(), permanent: true);
-  print("Serviços inicializados.");
+  // Chama o método init() customizado e assíncrono do AuthService
+  await Get.putAsync<AuthService>(() => AuthService().init());
+  print("AuthService inicializado e pronto via Get.putAsync.");
+  // Se tiver outros serviços para inicializar com Get.put ou Get.putAsync, faça aqui
 }
 
 class MyApp extends StatelessWidget {

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
-import 'package:loot_app/app/data/models/user_model.dart'; // Seu modelo de usuário
 import 'package:loot_app/app/data/providers/auth_api_provider.dart'; // Seu provider da API
 import 'package:loot_app/app/routes/app_routes.dart';
 // Importe seu serviço de storage se for salvar tokens/dados do usuário

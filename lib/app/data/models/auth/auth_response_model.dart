@@ -6,5 +6,5 @@ class AuthResponse {
 
   AuthResponse({required this.user, required this.token});
 
-  get firstName => null;
+  String get firstName => user.firstName;
 }
