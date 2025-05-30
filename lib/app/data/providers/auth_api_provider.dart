@@ -51,8 +51,9 @@ class AuthApiProvider extends GetConnect {
 
   // Método para Login
   Future<User?> login({required String email, required String password}) async {
-    // **IMPORTANTE: Ajuste o endpoint se necessário**
-    const String loginEndpoint = "login/"; // Ou o endpoint de login da sua API
+    const String loginEndpoint = "login/"; // Confirme seu endpoint
+    print("[AuthApiProvider] Iniciando login para: $email");
+    print("[AuthApiProvider] URL: ${httpClient.baseUrl}$loginEndpoint");
 
     try {
       final response = await post(loginEndpoint, {
@@ -60,42 +61,74 @@ class AuthApiProvider extends GetConnect {
         'password': password,
       });
 
-      // Verifica se a requisição foi bem-sucedida (status code 2xx)
+      // Log crucial: Veja o que o Flutter recebeu
+      print("[AuthApiProvider] Status da Resposta: ${response.statusCode}");
+      print(
+        "[AuthApiProvider] Corpo da Resposta (Raw): ${response.bodyString}",
+      ); // Imprime o JSON cru como string
+
       if (response.isOk) {
-        // Verifica se o corpo da resposta e os campos esperados não são nulos
+        // Verifica se o status code é 2xx (sucesso)
         if (response.body != null &&
-            response.body['user'] != null &&
-            response.body['token'] != null) {
-          final user = User.fromJson(response.body['user']);
-          final String token = response
-              .body['token']; // Assumindo que sua API retorna um campo 'token'
+            response.body
+                is Map && // Garante que o corpo é um mapa antes de acessar chaves
+            response.body['token'] != null &&
+            response.body['user'] != null) {
+          print(
+            "[AuthApiProvider] Token e User encontrados no corpo da resposta.",
+          );
+          try {
+            final user = User.fromJson(response.body['user']);
+            final String token = response.body['token'];
 
-          // **TODO: Salve o 'token' de forma segura aqui!**
-          // Exemplo usando um StorageService (que internamente usaria flutter_secure_storage):
-          // await _storageService.saveToken(token);
-          // await _storageService.saveUser(user); // Opcional: salvar dados do usuário
+            print(
+              "[AuthApiProvider] Usuário parseado: ${user.firstName}, Email: ${user.email}",
+            );
+            print(
+              "[AuthApiProvider] Token recebido (início): ${token.substring(0, token.length > 10 ? 10 : token.length)}...",
+            );
 
-          return user;
+            // TODO: SALVAR O TOKEN DE FORMA SEGURA AQUI!
+            // Ex: await _storageService.saveToken(token);
+
+            return user;
+          } catch (e) {
+            print(
+              "[AuthApiProvider] ERRO ao parsear User.fromJson ou token: $e",
+            );
+            Get.snackbar(
+              "Erro de Login",
+              "Erro ao processar dados do usuário.",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+            return null;
+          }
         } else {
-          // Resposta do servidor não tem a estrutura esperada
+          print(
+            "[AuthApiProvider] ERRO: Corpo da resposta OK, mas 'user' ou 'token' estão faltando ou não são um mapa.",
+          );
+          print("[AuthApiProvider] Detalhes do corpo: ${response.body}");
           Get.snackbar(
             "Erro de Login",
-            "Resposta inesperada do servidor.",
+            "Resposta inesperada do servidor (campos faltando).",
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.red,
             colorText: Colors.white,
           );
-          print(
-            "Login Error: Invalid response body. Body: ${response.bodyString}",
-          );
           return null;
         }
       } else {
-        // Trata erros da API (status code não é 2xx)
+        // A API retornou um erro (status code não é 2xx)
+        print(
+          "[AuthApiProvider] Falha no login com status ${response.statusCode}.",
+        );
         String errorMessage = "Não foi possível fazer login.";
-        if (response.body != null && response.body['message'] != null) {
-          errorMessage =
-              response.body['message']; // Mensagem de erro da sua API
+        if (response.body != null &&
+            response.body is Map &&
+            response.body['message'] != null) {
+          errorMessage = response.body['message'];
         } else if (response.statusText != null &&
             response.statusText!.isNotEmpty) {
           errorMessage = response.statusText!;
@@ -107,19 +140,20 @@ class AuthApiProvider extends GetConnect {
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
-        print("Login Error (${response.statusCode}): ${response.bodyString}");
         return null;
       }
     } catch (e) {
-      // Trata erros de conexão ou outros erros inesperados
+      // Este é o catch que você mencionou anteriormente.
+      // A mensagem de "unsafe header" NÃO é esta exceção.
+      // Esta exceção 'e' seria um erro de conexão, timeout, etc.
+      print("[AuthApiProvider] EXCEÇÃO na chamada HTTP: $e");
       Get.snackbar(
         "Erro de Login",
-        "Ocorreu um erro de conexão. Verifique sua internet ou tente mais tarde.",
+        "Ocorreu um erro de conexão. Verifique sua internet.",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-      print("Login Exception: $e");
       return null;
     }
   }
@@ -135,7 +169,7 @@ class AuthApiProvider extends GetConnect {
   }) async {
     // **IMPORTANTE: Ajuste o endpoint se necessário**
     const String registerEndpoint =
-        "/auth/register"; // Ou o endpoint de cadastro da sua API
+        "users/create/"; // Ou o endpoint de cadastro da sua API
 
     try {
       final response = await post(registerEndpoint, {
