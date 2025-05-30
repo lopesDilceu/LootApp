@@ -1,0 +1,204 @@
+// lib/app/data/providers/auth_api_provider.dart
+import 'package:flutter/material.dart'; // Para Cores no Get.snackbar
+import 'package:get/get.dart';
+import 'package:loot_app/app/data/models/user_model.dart';
+import 'package:loot_app/app/constants/api/api_constants.dart'; // **IMPORTANTE: Crie este arquivo!**
+
+// **OPCIONAL: Importe seu serviço de armazenamento para gerenciar o token**
+// import 'package:loot_app/app/services/storage_service.dart';
+
+class AuthApiProvider extends GetConnect {
+  // **OPCIONAL: Instância do seu serviço de armazenamento**
+  // final StorageService _storageService = Get.find<StorageService>();
+
+  @override
+  void onInit() {
+    // **MUITO IMPORTANTE:** Defina a URL base da sua API no arquivo!
+    // Ex: `lib/app/shared/constants/api_constants.dart`
+    // Conteúdo de api_constants.dart:
+    // class ApiConstants {
+    //   static const String baseUrl = "https://sua-api.com/api"; // SUBSTITUA PELA SUA URL
+    // }
+    httpClient.baseUrl = ApiConstants.baseUrl;
+    httpClient.timeout = const Duration(
+      seconds: 30,
+    ); // Define um timeout para as requisições
+
+    // **OPCIONAL: Interceptor para adicionar o token de autenticação automaticamente**
+    // Este trecho adicionaria o token salvo a todas as requisições futuras.
+    // httpClient.addRequestModifier<void>((request) async {
+    //   final token = await _storageService.getToken(); // Método para buscar o token salvo
+    //   if (token != null && token.isNotEmpty) {
+    //     request.headers['Authorization'] = 'Bearer $token';
+    //   }
+    //   return request;
+    // });
+
+    // **OPCIONAL: Interceptor para tratar respostas globais (ex: 401 - Não Autorizado)**
+    // httpClient.addResponseModifier((request, response) {
+    //   if (response.statusCode == 401) {
+    //     // Exemplo: Limpar dados do usuário e redirecionar para a tela de login
+    //     // _storageService.clearUserData(); // Método para limpar dados salvos
+    //     // Get.offAllNamed(AppRoutes.LOGIN); // Redireciona para o login
+    //     Get.snackbar('Sessão Expirada', 'Por favor, faça login novamente.',
+    //       snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange);
+    //   }
+    //   return response;
+    // });
+  }
+
+  // Método para Login
+  Future<User?> login({required String email, required String password}) async {
+    // **IMPORTANTE: Ajuste o endpoint se necessário**
+    const String loginEndpoint = "login/"; // Ou o endpoint de login da sua API
+
+    try {
+      final response = await post(loginEndpoint, {
+        'email': email,
+        'password': password,
+      });
+
+      // Verifica se a requisição foi bem-sucedida (status code 2xx)
+      if (response.isOk) {
+        // Verifica se o corpo da resposta e os campos esperados não são nulos
+        if (response.body != null &&
+            response.body['user'] != null &&
+            response.body['token'] != null) {
+          final user = User.fromJson(response.body['user']);
+          final String token = response
+              .body['token']; // Assumindo que sua API retorna um campo 'token'
+
+          // **TODO: Salve o 'token' de forma segura aqui!**
+          // Exemplo usando um StorageService (que internamente usaria flutter_secure_storage):
+          // await _storageService.saveToken(token);
+          // await _storageService.saveUser(user); // Opcional: salvar dados do usuário
+
+          return user;
+        } else {
+          // Resposta do servidor não tem a estrutura esperada
+          Get.snackbar(
+            "Erro de Login",
+            "Resposta inesperada do servidor.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          print(
+            "Login Error: Invalid response body. Body: ${response.bodyString}",
+          );
+          return null;
+        }
+      } else {
+        // Trata erros da API (status code não é 2xx)
+        String errorMessage = "Não foi possível fazer login.";
+        if (response.body != null && response.body['message'] != null) {
+          errorMessage =
+              response.body['message']; // Mensagem de erro da sua API
+        } else if (response.statusText != null &&
+            response.statusText!.isNotEmpty) {
+          errorMessage = response.statusText!;
+        }
+        Get.snackbar(
+          "Erro de Login (${response.statusCode})",
+          errorMessage,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        print("Login Error (${response.statusCode}): ${response.bodyString}");
+        return null;
+      }
+    } catch (e) {
+      // Trata erros de conexão ou outros erros inesperados
+      Get.snackbar(
+        "Erro de Login",
+        "Ocorreu um erro de conexão. Verifique sua internet ou tente mais tarde.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      print("Login Exception: $e");
+      return null;
+    }
+  }
+
+  // Método para Cadastro
+  Future<User?> register({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    Role role =
+        Role.user, // Confirme se o 'role' é enviado ou definido no backend
+  }) async {
+    // **IMPORTANTE: Ajuste o endpoint se necessário**
+    const String registerEndpoint =
+        "/auth/register"; // Ou o endpoint de cadastro da sua API
+
+    try {
+      final response = await post(registerEndpoint, {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'password': password,
+        'role': role.name, // Envia 'user' ou 'admin' como string
+      });
+
+      if (response.isOk) {
+        if (response.body != null &&
+            response.body['user'] != null &&
+            response.body['token'] != null) {
+          final user = User.fromJson(response.body['user']);
+          final String token = response.body['token'];
+
+          // **TODO: Salve o 'token' de forma segura aqui (similar ao login)!**
+          // Ex: await _storageService.saveToken(token);
+          // Ex: await _storageService.saveUser(user);
+
+          return user;
+        } else {
+          Get.snackbar(
+            "Erro de Cadastro",
+            "Resposta inesperada do servidor após cadastro.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          print(
+            "Register Error: Invalid response body. Body: ${response.bodyString}",
+          );
+          return null;
+        }
+      } else {
+        String errorMessage = "Não foi possível realizar o cadastro.";
+        if (response.body != null && response.body['message'] != null) {
+          errorMessage = response.body['message'];
+        } else if (response.statusText != null &&
+            response.statusText!.isNotEmpty) {
+          errorMessage = response.statusText!;
+        }
+        Get.snackbar(
+          "Erro de Cadastro (${response.statusCode})",
+          errorMessage,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        print(
+          "Register Error (${response.statusCode}): ${response.bodyString}",
+        );
+        return null;
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Erro de Cadastro",
+        "Ocorreu um erro de conexão. Verifique sua internet ou tente mais tarde.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      print("Register Exception: $e");
+      return null;
+    }
+  }
+}

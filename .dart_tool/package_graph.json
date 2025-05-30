@@ -7,7 +7,8 @@
       "name": "loot_app",
       "version": "0.1.0",
       "dependencies": [
-        "flutter"
+        "flutter",
+        "get"
       ],
       "devDependencies": [
         "flutter_lints",
@@ -47,6 +48,14 @@
         "test_api",
         "vector_math",
         "vm_service"
+      ]
+    },
+    {
+      "name": "get",
+      "version": "4.7.2",
+      "dependencies": [
+        "flutter",
+        "web"
       ]
     },
     {
@@ -223,6 +232,11 @@
         "string_scanner",
         "term_glyph"
       ]
+    },
+    {
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
     },
     {
       "name": "sky_engine",

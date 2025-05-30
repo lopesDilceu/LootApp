@@ -56,6 +56,12 @@
       "languageVersion": "3.7"
     },
     {
+      "name": "get",
+      "rootUri": "file:///C:/Users/dilce/AppData/Local/Pub/Cache/hosted/pub.dev/get-4.7.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
       "name": "leak_tracker",
       "rootUri": "file:///C:/Users/dilce/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker-10.0.9",
       "packageUri": "lib/",
@@ -156,6 +162,12 @@
       "rootUri": "file:///C:/Users/dilce/AppData/Local/Pub/Cache/hosted/pub.dev/vm_service-15.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.3"
+    },
+    {
+      "name": "web",
+      "rootUri": "file:///C:/Users/dilce/AppData/Local/Pub/Cache/hosted/pub.dev/web-1.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "loot_app",
