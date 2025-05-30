@@ -1,4 +1,6 @@
 // lib/app/data/providers/auth_api_provider.dart
+// ignore_for_file: avoid_print, unused_local_variable
+
 import 'package:flutter/material.dart'; // Para Cores no Get.snackbar
 import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/user_model.dart';
@@ -151,7 +153,7 @@ class AuthApiProvider extends GetConnect {
           final user = User.fromJson(response.body['user']);
           final String token = response.body['token'];
 
-          // **TODO: Salve o 'token' de forma segura aqui (similar ao login)!**
+          // TODO: Salve o 'token' de forma segura aqui (similar ao login)!
           // Ex: await _storageService.saveToken(token);
           // Ex: await _storageService.saveUser(user);
 
