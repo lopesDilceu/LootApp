@@ -53,7 +53,8 @@ class LoginController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Por favor, insira sua senha.';
     }
-    if (value.length < 6) { // Exemplo de regra de negócio
+    if (value.length < 6) {
+      // Exemplo de regra de negócio
       return 'A senha deve ter no mínimo 6 caracteres.';
     }
     return null;
@@ -63,7 +64,9 @@ class LoginController extends GetxController {
   Future<void> loginUser() async {
     if (loginFormKey.currentState!.validate()) {
       isLoading.value = true;
-      print("[LoginController] Formulário validado. Chamando _authApiProvider.login().");
+      print(
+        "[LoginController] Formulário validado. Chamando _authApiProvider.login().",
+      );
       try {
         // _authApiProvider.login() agora retorna AuthResponse?
         AuthResponse? authResponse = await _authApiProvider.login(
@@ -71,14 +74,23 @@ class LoginController extends GetxController {
           password: passwordController.text.trim(),
         );
 
-        print("[LoginController] authResponse recebido do provider: ${authResponse == null ? 'NULO' : 'RECEBIDO'}");
+        print(
+          "[LoginController] authResponse recebido do provider: ${authResponse == null ? 'NULO' : 'RECEBIDO'}",
+        );
 
         if (authResponse != null) {
-          print("[LoginController] Login BEM-SUCEDIDO via provider. Chamando AuthService.to.loginUserSession().");
+          print(
+            "[LoginController] Login BEM-SUCEDIDO via provider. Chamando AuthService.to.loginUserSession().",
+          );
           // VVVVVV ESTA É A CHAMADA CRUCIAL VVVVVV
-          await AuthService.to.loginUserSession(authResponse.user, authResponse.token);
+          await AuthService.to.loginUserSession(
+            authResponse.user,
+            authResponse.token,
+          );
           // VVVVVV FIM DA CHAMADA CRUCIAL VVVVVV
-          print("[LoginController] AuthService.to.loginUserSession() CONCLUÍDO.");
+          print(
+            "[LoginController] AuthService.to.loginUserSession() CONCLUÍDO.",
+          );
 
           Get.snackbar(
             'Sucesso!',
@@ -90,14 +102,23 @@ class LoginController extends GetxController {
           // Navega para a tela principal LOGADA (ex: DealsListScreen)
           Get.offAllNamed(AppRoutes.DEALS_LIST);
         } else {
-          print("[LoginController] Login FALHOU: _authApiProvider.login() retornou null.");
+          print(
+            "[LoginController] Login FALHOU: _authApiProvider.login() retornou null.",
+          );
           // O AuthApiProvider já deve ter mostrado um Snackbar de erro se authResponse for null.
         }
       } catch (e, stackTrace) {
-        print("[LoginController] EXCEÇÃO ao chamar _authApiProvider.login() ou AuthService: $e");
+        print(
+          "[LoginController] EXCEÇÃO ao chamar _authApiProvider.login() ou AuthService: $e",
+        );
         print("[LoginController] StackTrace da exceção: $stackTrace");
-        Get.snackbar('Erro de Login', 'Ocorreu um erro: ${e.toString()}',
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          'Erro de Login',
+          'Ocorreu um erro: ${e.toString()}',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       } finally {
         isLoading.value = false;
       }

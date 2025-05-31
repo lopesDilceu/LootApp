@@ -6,7 +6,6 @@ import 'package:loot_app/app/widgets/common/app_bar.dart';
 import 'package:loot_app/app/widgets/deals/small_deal_card_widget.dart';
 // DealModel ainda é necessário se você não passar para o SmallDealCardWidget diretamente do controller.topDeals
 // import 'package:loot_app/app/data/models/deal_model.dart';
-import 'package:loot_app/app/routes/app_routes.dart'; // Para navegação
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});

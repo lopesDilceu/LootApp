@@ -1,5 +1,4 @@
 // lib/app/data/providers/deals_api_provider.dart
-import 'package:flutter/material.dart'; // Para Colors no Get.snackbar
 import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/data/models/store_model.dart';
