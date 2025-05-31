@@ -24,7 +24,8 @@ class SmallDealCardWidget extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          print("SmallDealCard Tapped: ${deal.title}");
+          print("[SmallDealCardWidget] Tapped: ${deal.title}. Passando como argumento para DealDetail.");
+          print("[SmallDealCardWidget] Tipo de 'deal': ${deal.runtimeType}");
           Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal); // Navega para detalhes
         },
         child: SizedBox(

@@ -51,6 +51,23 @@ class DealDetailScreen extends GetView<DealDetailController> {
           return const Center(child: Text("Promoção não encontrada."));
         }
 
+        String imageUrlToDisplay = deal.thumb;
+
+        if (deal.steamAppID != null && deal.steamAppID!.isNotEmpty) {
+          // Tenta pegar uma imagem maior da Steam (ex: header.jpg)
+          String potentialSteamHeaderUrl =
+              'https://steamcdn-a.akamaihd.net/steam/apps/${deal.steamAppID}/header.jpg';
+          // Ou para a imagem de capa vertical:
+          // String potentialSteamLibraryUrl = 'https://steamcdn-a.akamaihd.net/steam/apps/${deal.steamAppID}/library_600x900.jpg';
+
+          // Você pode definir uma preferência ou até tentar carregar a maior e fazer fallback para a thumb se falhar.
+          // Por simplicidade, vamos usar a headerUrl se steamAppID existir.
+          imageUrlToDisplay = potentialSteamHeaderUrl;
+          print(
+            "[DealDetailScreen] Usando imagem da Steam: $imageUrlToDisplay",
+          );
+        }
+
         String proxiedImageUrl = '';
         if (deal.thumb.isNotEmpty) {
           String encodedImageUrl = Uri.encodeComponent(deal.thumb);

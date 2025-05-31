@@ -23,7 +23,8 @@ class ListItemDealCardWidget extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          print("ListItemDealCard Tapped: ${deal.title}");
+          print("[ListItemDealCardWidget] Tapped: ${deal.title}. Passando como argumento para DealDetail.");
+          print("[ListItemDealCardWidget] Tipo de 'deal': ${deal.runtimeType}");
           Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
         },
         child: Padding(
