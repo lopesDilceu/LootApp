@@ -25,20 +25,6 @@ class SmallDealCardWidget extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // Log para verificar o objeto 'deal' ANTES de navegar
-          if (deal == null) {
-            // 'deal' é o parâmetro recebido pelo widget do card
-            print(
-              "[CardWidget] ERRO CRÍTICO: O objeto 'deal' está NULO antes de tentar navegar!",
-            );
-            Get.snackbar(
-              "Erro na Promoção",
-              "Não é possível ver os detalhes, dados da promoção indisponíveis.",
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-            );
-            return; // Impede a navegação se 'deal' for nulo
-          }
-
           print(
             "[CardWidget] Iniciando navegação para detalhes da promoção: ${deal.title}",
           );

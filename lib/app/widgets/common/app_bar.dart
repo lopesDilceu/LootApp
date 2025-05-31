@@ -1,6 +1,7 @@
 // ignore_for_file: unused_local_variable
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
@@ -19,7 +20,16 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       leading: IconButton(
-        icon: const Icon(Icons.shield_outlined, color: Colors.white),
+        icon: SvgPicture.asset(
+          'images/logos/logo-text-dark.svg', // <<< CAMINHO PARA SEU LOGO SVG
+          width: 64, // Ajuste a largura conforme necessário
+          height: 64, // Ajuste a altura conforme necessário
+          // O colorFilter tentará tingir seu SVG. Se o SVG já tiver as cores corretas
+          // ou for multicolorido e você quiser preservar as cores, remova ou ajuste o colorFilter.
+          // Se o SVG for preto e você quiser branco na AppBar:
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          semanticsLabel: 'Logo Loot App',
+        ),
         tooltip: 'Página Inicial Loot',
         onPressed: () {
           const String targetRoute = AppRoutes.HOME;

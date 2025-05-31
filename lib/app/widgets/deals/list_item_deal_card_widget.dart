@@ -14,7 +14,7 @@ class ListItemDealCardWidget extends StatelessWidget {
     String proxiedImageUrl = '';
     if (deal.thumb.isNotEmpty) {
       String encodedImageUrl = Uri.encodeComponent(deal.thumb);
-      proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl"; 
+      proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl";
     }
 
     return Card(
@@ -24,24 +24,18 @@ class ListItemDealCardWidget extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // Log para verificar o objeto 'deal' ANTES de navegar
-          if (deal == null) { // 'deal' é o parâmetro recebido pelo widget do card
-            print("[CardWidget] ERRO CRÍTICO: O objeto 'deal' está NULO antes de tentar navegar!");
-            Get.snackbar(
-              "Erro na Promoção", 
-              "Não é possível ver os detalhes, dados da promoção indisponíveis.",
-              backgroundColor: Colors.red,
-              colorText: Colors.white
-            );
-            return; // Impede a navegação se 'deal' for nulo
-          }
-
-          print("[CardWidget] Iniciando navegação para detalhes da promoção: ${deal.title}");
-          print("[CardWidget] Tipo do objeto 'deal' sendo passado: ${deal.runtimeType}");
+          print(
+            "[CardWidget] Iniciando navegação para detalhes da promoção: ${deal.title}",
+          );
+          print(
+            "[CardWidget] Tipo do objeto 'deal' sendo passado: ${deal.runtimeType}",
+          );
           // Para ver os dados, você pode logar o JSON (se tiver o método toJson no DealModel)
-          // print("[CardWidget] Dados do 'deal' (JSON): ${deal.toJson()}"); 
+          // print("[CardWidget] Dados do 'deal' (JSON): ${deal.toJson()}");
           // Ou alguns campos específicos:
-          print("[CardWidget] Deal ID: ${deal.dealID}, Deal Thumb: ${deal.thumb}");
-
+          print(
+            "[CardWidget] Deal ID: ${deal.dealID}, Deal Thumb: ${deal.thumb}",
+          );
 
           Get.toNamed(
             AppRoutes.DEAL_DETAIL,
@@ -62,13 +56,31 @@ class ListItemDealCardWidget extends StatelessWidget {
                     ? Image.network(
                         proxiedImageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (ctx, err, st) => const Center(child: Icon(Icons.broken_image_outlined, color: Colors.grey)),
+                        errorBuilder: (ctx, err, st) => const Center(
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: Colors.grey,
+                          ),
+                        ),
                         loadingBuilder: (ctx, child, progress) {
-                           if (progress == null) return child;
-                           return const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)));
+                          if (progress == null) return child;
+                          return const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                          );
                         },
                       )
-                    : const Center(child: Icon(Icons.image_not_supported_outlined, color: Colors.grey)),
+                    : const Center(
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colors.grey,
+                        ),
+                      ),
               ),
               const SizedBox(width: 12),
               // Deal Info
@@ -78,21 +90,29 @@ class ListItemDealCardWidget extends StatelessWidget {
                   children: [
                     Text(
                       deal.title,
-                      style: Get.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: Get.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 5),
                     Text(
                       "Loja: ${deal.storeName}",
-                      style: Get.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+                      style: Get.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[700],
+                      ),
                     ),
-                    if (deal.steamRatingText != null && deal.steamRatingText!.isNotEmpty)
+                    if (deal.steamRatingText != null &&
+                        deal.steamRatingText!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 3.0),
                         child: Text(
                           "Steam: ${deal.steamRatingText} (${deal.steamRatingPercent ?? ''}%)",
-                          style: Get.textTheme.bodySmall?.copyWith(color: Colors.blueGrey[700]),
+                          style: Get.textTheme.bodySmall?.copyWith(
+                            color: Colors.blueGrey[700],
+                          ),
                         ),
                       ),
                   ],
@@ -112,7 +132,8 @@ class ListItemDealCardWidget extends StatelessWidget {
                       color: Colors.green[700],
                     ),
                   ),
-                  if (deal.normalPriceValue > 0 && deal.normalPriceValue > deal.salePriceValue)
+                  if (deal.normalPriceValue > 0 &&
+                      deal.normalPriceValue > deal.salePriceValue)
                     Text(
                       "\$${deal.normalPrice}",
                       style: TextStyle(
@@ -125,7 +146,10 @@ class ListItemDealCardWidget extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.redAccent,
                           borderRadius: BorderRadius.circular(4),

@@ -1,6 +1,6 @@
 name: loot_app
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
+  flutter_svg: ^2.1.0
   get: ^4.7.2
   get_storage: ^2.1.1
   intl: ^0.20.2
@@ -22,3 +23,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/ 

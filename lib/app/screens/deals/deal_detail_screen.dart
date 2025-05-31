@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/controllers/deal_detail_controller.dart';
 import 'package:loot_app/app/widgets/common/app_bar.dart';
-import 'package:loot_app/app/data/models/deal_model.dart';
 
 class DealDetailScreen extends GetView<DealDetailController> {
   const DealDetailScreen({super.key});
