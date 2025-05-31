@@ -1,0 +1,129 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:loot_app/app/data/models/deal_model.dart';
+import 'package:loot_app/app/routes/app_routes.dart';
+
+class ListItemDealCardWidget extends StatelessWidget {
+  final DealModel deal;
+
+  const ListItemDealCardWidget({super.key, required this.deal});
+
+  @override
+  Widget build(BuildContext context) {
+    String proxiedImageUrl = '';
+    if (deal.thumb.isNotEmpty) {
+      String encodedImageUrl = Uri.encodeComponent(deal.thumb);
+      final String apiBaseUrl = Get.find<String>(tag: 'ApiBaseUrl');
+      proxiedImageUrl = "$apiBaseUrl/proxy/image?url=$encodedImageUrl";
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          print("ListItemDealCard Tapped: ${deal.title}");
+          Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail
+              Container(
+                width: 110,
+                height: 65,
+                color: Colors.grey[200],
+                child: proxiedImageUrl.isNotEmpty
+                    ? Image.network(
+                        proxiedImageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (ctx, err, st) => const Center(child: Icon(Icons.broken_image_outlined, color: Colors.grey)),
+                        loadingBuilder: (ctx, child, progress) {
+                           if (progress == null) return child;
+                           return const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)));
+                        },
+                      )
+                    : const Center(child: Icon(Icons.image_not_supported_outlined, color: Colors.grey)),
+              ),
+              const SizedBox(width: 12),
+              // Deal Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      deal.title,
+                      style: Get.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 15),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "Loja: ${deal.storeName}",
+                      style: Get.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+                    ),
+                    if (deal.steamRatingText != null && deal.steamRatingText!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3.0),
+                        child: Text(
+                          "Steam: ${deal.steamRatingText} (${deal.steamRatingPercent ?? ''}%)",
+                          style: Get.textTheme.bodySmall?.copyWith(color: Colors.blueGrey[700]),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Price Info
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "\$${deal.salePrice}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                  if (deal.normalPriceValue > 0 && deal.normalPriceValue > deal.salePriceValue)
+                    Text(
+                      "\$${deal.normalPrice}",
+                      style: TextStyle(
+                        decoration: TextDecoration.lineThrough,
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  if (deal.savingsPercentage > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          "-${deal.savingsPercentage.toStringAsFixed(0)}%",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

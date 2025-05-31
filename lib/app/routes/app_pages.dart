@@ -1,10 +1,12 @@
 // lib/app/routes/app_pages.dart
 import 'package:get/get.dart';
+import 'package:loot_app/app/bindings/deal_detail_binding.dart';
 import 'package:loot_app/app/bindings/deals_binding.dart';
 import 'package:loot_app/app/bindings/profile_binding.dart';
 import 'package:loot_app/app/bindings/splash_binding.dart';
 import 'package:loot_app/app/middlewares/auth_middleware.dart';
 import 'package:loot_app/app/screens/auth/register_screen.dart';
+import 'package:loot_app/app/screens/deals/deal_detail_screen.dart';
 import 'package:loot_app/app/screens/deals/deals_list_screen.dart';
 import 'package:loot_app/app/screens/home/home_screen.dart';
 import 'package:loot_app/app/bindings/home_binding.dart';
@@ -41,6 +43,11 @@ class AppPages {
       name: AppRoutes.DEALS_LIST,
       page: () => const DealsListScreen(), // Crie a UI para esta tela
       binding: DealsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DEAL_DETAIL,
+      page: () => const DealDetailScreen(),
+      binding: DealDetailBinding(),
     ),
     GetPage(
       name: AppRoutes.PROFILE,

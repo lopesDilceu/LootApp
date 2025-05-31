@@ -13,6 +13,8 @@ void main() async {
 
 Future<void> initializeServices() async {
   print("Inicializando serviços...");
+  // Get.put<String>("https://users-backend-api-production.up.railway.app", tag: 'ApiBaseUrl', permanent: true);
+  Get.put<String>("http://localhost:8000", tag: 'ApiBaseUrl', permanent: true);
   // Chama o método init() customizado e assíncrono do AuthService
   await Get.putAsync<AuthService>(() => AuthService().init());
   print("AuthService inicializado e pronto via Get.putAsync.");

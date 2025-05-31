@@ -6,6 +6,7 @@ class AppRoutes {
   static const REGISTER = '/register'; // Para o futuro
   static const DEALS_LIST = '/deals'; // Sua home logada (exemplo)
   static const PROFILE = '/profile';
+  static const DEAL_DETAIL = '/deal-detail';
 
   // static const INITIAL = HOME; // Se HOME for a tela inicial padrão
   // ... outras rotas
