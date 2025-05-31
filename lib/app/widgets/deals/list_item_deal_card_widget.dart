@@ -23,9 +23,30 @@ class ListItemDealCardWidget extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          print("[ListItemDealCardWidget] Tapped: ${deal.title}. Passando como argumento para DealDetail.");
-          print("[ListItemDealCardWidget] Tipo de 'deal': ${deal.runtimeType}");
-          Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
+          // Log para verificar o objeto 'deal' ANTES de navegar
+          if (deal == null) { // 'deal' é o parâmetro recebido pelo widget do card
+            print("[CardWidget] ERRO CRÍTICO: O objeto 'deal' está NULO antes de tentar navegar!");
+            Get.snackbar(
+              "Erro na Promoção", 
+              "Não é possível ver os detalhes, dados da promoção indisponíveis.",
+              backgroundColor: Colors.red,
+              colorText: Colors.white
+            );
+            return; // Impede a navegação se 'deal' for nulo
+          }
+
+          print("[CardWidget] Iniciando navegação para detalhes da promoção: ${deal.title}");
+          print("[CardWidget] Tipo do objeto 'deal' sendo passado: ${deal.runtimeType}");
+          // Para ver os dados, você pode logar o JSON (se tiver o método toJson no DealModel)
+          // print("[CardWidget] Dados do 'deal' (JSON): ${deal.toJson()}"); 
+          // Ou alguns campos específicos:
+          print("[CardWidget] Deal ID: ${deal.dealID}, Deal Thumb: ${deal.thumb}");
+
+
+          Get.toNamed(
+            AppRoutes.DEAL_DETAIL,
+            arguments: deal, // Passa o objeto 'deal'
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(10.0),
