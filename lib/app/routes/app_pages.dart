@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:loot_app/app/bindings/deal_detail_binding.dart';
 import 'package:loot_app/app/bindings/deals_binding.dart';
 import 'package:loot_app/app/bindings/profile_binding.dart';
+import 'package:loot_app/app/bindings/settings_binding.dart';
 import 'package:loot_app/app/bindings/splash_binding.dart';
 import 'package:loot_app/app/middlewares/auth_middleware.dart';
 import 'package:loot_app/app/screens/auth/register_screen.dart';
@@ -13,6 +14,7 @@ import 'package:loot_app/app/bindings/home_binding.dart';
 import 'package:loot_app/app/screens/auth/login_screen.dart'; // Crie este arquivo
 import 'package:loot_app/app/bindings/auth_binding.dart';   // Crie este arquivo
 import 'package:loot_app/app/screens/profile/profile_screen.dart';
+import 'package:loot_app/app/screens/settings/settings_screen.dart';
 import 'package:loot_app/app/screens/splash/splash_screen.dart';
 
 import 'app_routes.dart';
@@ -54,6 +56,12 @@ class AppPages {
       page: () => const ProfileScreen(),
       binding: ProfileBinding(),
       middlewares: [AuthMiddleware()], // TODO: Adicionar middleware de autenticação
+    ),
+    GetPage(
+      name: AppRoutes.SETTINGS,
+      page: () => const SettingsScreen(),
+      binding: SettingsBinding(),
+      middlewares: [AuthMiddleware()], // Requer login para acessar configurações
     ),
   ];
 }

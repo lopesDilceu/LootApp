@@ -5,6 +5,7 @@ import 'package:loot_app/app/routes/app_pages.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
 import 'package:loot_app/app/services/theme_service.dart'; // Importe ThemeService
+import 'package:loot_app/app/services/user_preferences_service.dart';
 import 'package:loot_app/app/themes/app_theme.dart';
 
 void main() async {
@@ -14,11 +15,26 @@ void main() async {
 }
 
 Future<void> initializeServices() async {
-  await GetStorage.init(); // Essencial para GetStorage funcionar
-  await Get.putAsync<AuthService>(() => AuthService().init());
+  print("Inicializando GetStorage...");
+  await GetStorage.init();
+  print("GetStorage inicializado.");
 
+  print("Inicializando AuthService...");
+  await Get.putAsync<AuthService>(() => AuthService().init());
+  print("AuthService inicializado e pronto.");
+
+  print("Inicializando ThemeService...");
   final themeService = Get.put(ThemeService());
   themeService.initTheme();
+  print("ThemeService inicializado e tema aplicado.");
+
+  print("Inicializando UserPreferencesService..."); // Log antes
+  Get.put(
+    UserPreferencesService(),
+  ); // Esta linha dispara o onInit() do UserPreferencesService
+  print("UserPreferencesService inicializado."); // Log depois
+
+  // ... (seu Get.put para ApiBaseUrl)
 }
 
 class MyApp extends StatelessWidget {
