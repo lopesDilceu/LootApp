@@ -19,14 +19,6 @@ Future<void> initializeServices() async {
 
   final themeService = Get.put(ThemeService());
   themeService.initTheme();
-
-  // Coloque aqui o Get.put para sua ApiBaseUrl e outros serviços globais
-  Get.put<String>(
-    "https://users-backend-api-production.up.railway.app",
-    tag: 'ApiBaseUrl',
-    permanent: true,
-  );
-  print("ApiBaseUrl configurada.");
 }
 
 class MyApp extends StatelessWidget {

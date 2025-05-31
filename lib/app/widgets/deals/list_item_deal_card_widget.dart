@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
 
@@ -13,8 +14,7 @@ class ListItemDealCardWidget extends StatelessWidget {
     String proxiedImageUrl = '';
     if (deal.thumb.isNotEmpty) {
       String encodedImageUrl = Uri.encodeComponent(deal.thumb);
-      final String apiBaseUrl = Get.find<String>(tag: 'ApiBaseUrl');
-      proxiedImageUrl = "$apiBaseUrl/proxy/image?url=$encodedImageUrl";
+      proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl"; 
     }
 
     return Card(

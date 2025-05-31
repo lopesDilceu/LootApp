@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/routes/app_routes.dart'; // Para navegação para detalhes
 
@@ -14,8 +15,7 @@ class SmallDealCardWidget extends StatelessWidget {
     if (deal.thumb.isNotEmpty) {
       String encodedImageUrl = Uri.encodeComponent(deal.thumb);
       // Obtém a URL base do proxy configurada globalmente
-      final String apiBaseUrl = Get.find<String>(tag: 'ApiBaseUrl');
-      proxiedImageUrl = "$apiBaseUrl/proxy/image?url=$encodedImageUrl"; // Ajuste o caminho se necessário
+      proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl"; 
     }
 
     return Card(

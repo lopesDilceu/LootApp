@@ -15,9 +15,15 @@ class DealsFilterWidget extends StatelessWidget {
       // Define uma altura máxima para o BottomSheet, mas ele se ajustará ao conteúdo
       // devido ao SingleChildScrollView e MainAxisSize.min no Column.
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85, // 85% da altura da tela
+        maxHeight:
+            MediaQuery.of(context).size.height * 0.85, // 85% da altura da tela
       ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), // Padding, sem o de baixo para o botão colar
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        0,
+      ), // Padding, sem o de baixo para o botão colar
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor, // Cor de fundo baseada no tema
         borderRadius: const BorderRadius.only(
@@ -27,7 +33,8 @@ class DealsFilterWidget extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min, // Faz o Column se ajustar ao conteúdo verticalmente
+        mainAxisSize: MainAxisSize
+            .min, // Faz o Column se ajustar ao conteúdo verticalmente
         children: [
           // Alça e Título
           Center(
@@ -43,7 +50,9 @@ class DealsFilterWidget extends StatelessWidget {
           ),
           Text(
             "Filtrar e Ordenar",
-            style: Get.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Get.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -57,46 +66,71 @@ class DealsFilterWidget extends StatelessWidget {
                   // Ordenação
                   Text("Ordenar por:", style: Get.textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  Obx(() => DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                  Obx(
+                    () => DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 15,
                         ),
-                        value: controller.selectedSortBy.value,
-                        items: controller.sortOptions.map((String sortBy) {
-                          return DropdownMenuItem<String>(value: sortBy, child: Text(sortBy));
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) controller.selectedSortBy.value = newValue;
-                        },
-                      )),
+                      ),
+                      value: controller.selectedSortBy.value,
+                      items: controller.sortOptions.map((String sortBy) {
+                        return DropdownMenuItem<String>(
+                          value: sortBy,
+                          child: Text(sortBy),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null)
+                          controller.selectedSortBy.value = newValue;
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 20),
 
                   // Faixa de Preço
-                  Text("Faixa de Preço (USD):", style: Get.textTheme.titleMedium),
+                  Text(
+                    "Faixa de Preço (USD):",
+                    style: Get.textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(
+                  Row(
+                    children: [
+                      Expanded(
                         child: TextField(
-                            controller: controller.lowerPriceTEC,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                                labelText: "De \$",
-                                prefixText: "\$", // Adicionado prefixo
-                                border: OutlineInputBorder()))),
-                    const Padding(
+                          controller: controller.lowerPriceTEC,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: "De \$",
+                            prefixText: "\$", // Adicionado prefixo
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text("-", style: TextStyle(fontSize: 18))),
-                    Expanded(
+                        child: Text("-", style: TextStyle(fontSize: 18)),
+                      ),
+                      Expanded(
                         child: TextField(
-                            controller: controller.upperPriceTEC,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                                labelText: "Até \$",
-                                prefixText: "\$", // Adicionado prefixo
-                                border: OutlineInputBorder()))),
-                  ]),
+                          controller: controller.upperPriceTEC,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: "Até \$",
+                            prefixText: "\$", // Adicionado prefixo
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
 
                   // Lojas (Multi-seleção)
@@ -106,34 +140,53 @@ class DealsFilterWidget extends StatelessWidget {
                     if (controller.availableStores.isEmpty) {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
-                        child: Text("Carregando lojas...", style: TextStyle(fontStyle: FontStyle.italic)),
+                        child: Text(
+                          "Carregando lojas...",
+                          style: TextStyle(fontStyle: FontStyle.italic),
+                        ),
                       );
                     }
                     return Container(
-                      constraints: BoxConstraints(maxHeight: Get.height * 0.25), // Limita altura
+                      constraints: BoxConstraints(
+                        maxHeight: Get.height * 0.25,
+                      ), // Limita altura
                       decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8)),
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: controller.availableStores.length,
                         itemBuilder: (ctx, index) {
                           final store = controller.availableStores[index];
-                          return Obx(() => CheckboxListTile(
-                                title: Text(store.storeName, style: const TextStyle(fontSize: 14)),
-                                value: controller.selectedStoreIDs.contains(store.storeID),
-                                dense: true,
-                                controlAffinity: ListTileControlAffinity.leading,
-                                onChanged: (bool? selected) {
-                                  if (selected == true) {
-                                    if (!controller.selectedStoreIDs.contains(store.storeID)) {
-                                      controller.selectedStoreIDs.add(store.storeID);
-                                    }
-                                  } else {
-                                    controller.selectedStoreIDs.remove(store.storeID);
+                          return Obx(
+                            () => CheckboxListTile(
+                              title: Text(
+                                store.storeName,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              value: controller.selectedStoreIDs.contains(
+                                store.storeID,
+                              ),
+                              dense: true,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              onChanged: (bool? selected) {
+                                if (selected == true) {
+                                  if (!controller.selectedStoreIDs.contains(
+                                    store.storeID,
+                                  )) {
+                                    controller.selectedStoreIDs.add(
+                                      store.storeID,
+                                    );
                                   }
-                                },
-                              ));
+                                } else {
+                                  controller.selectedStoreIDs.remove(
+                                    store.storeID,
+                                  );
+                                }
+                              },
+                            ),
+                          );
                         },
                       ),
                     );
@@ -144,7 +197,10 @@ class DealsFilterWidget extends StatelessWidget {
           ),
           // Botões de Ação (fora do SingleChildScrollView para ficarem fixos embaixo)
           Padding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 8.0), // Ajuste o padding se necessário
+            padding: const EdgeInsets.only(
+              top: 16.0,
+              bottom: 8.0,
+            ), // Ajuste o padding se necessário
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -156,8 +212,12 @@ class DealsFilterWidget extends StatelessWidget {
                     // Get.back(); // Opcional: fechar após limpar, ou deixar aberto para nova aplicação
                   },
                   style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      textStyle: const TextStyle(fontSize: 16)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.check_circle_outline_rounded),
@@ -167,8 +227,12 @@ class DealsFilterWidget extends StatelessWidget {
                     Get.back(); // Fecha o BottomSheet após aplicar
                   },
                   style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      textStyle: const TextStyle(fontSize: 16)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
                 ),
               ],
             ),
