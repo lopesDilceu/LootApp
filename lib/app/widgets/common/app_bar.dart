@@ -3,55 +3,112 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
-import 'package:loot_app/app/services/auth/auth_service.dart'; // Certifique-se que o caminho para AuthService está correto
+import 'package:loot_app/app/services/auth/auth_service.dart';
+import 'package:loot_app/app/services/theme_service.dart'; // Certifique-se que o caminho para AuthService está correto
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? customActions;
 
-  const CommonAppBar({
-    super.key,
-    required this.title,
-    this.customActions,
-  });
+  const CommonAppBar({super.key, required this.title, this.customActions});
 
   @override
   Widget build(BuildContext context) {
-    // A instância do AuthService é obtida uma vez para evitar múltiplas chamadas a Get.find()
-    // AuthService.to já faz isso, mas para clareza no build:
-    final AuthService authService = AuthService.to; 
+    final AuthService authService = AuthService.to;
+    final ThemeService themeService = ThemeService.to; // Acesso ao ThemeService
 
     return AppBar(
       leading: IconButton(
-        // Substitua 'Icons.shield_outlined' pelo seu widget de Logo (ex: Image.asset)
         icon: const Icon(Icons.shield_outlined, color: Colors.white),
         tooltip: 'Página Inicial Loot',
         onPressed: () {
-          print("[CommonAppBar] Botão de Logo pressionado.");
-          // Lógica do usuário: logo sempre leva para AppRoutes.HOME pública.
-          // Se quiser que vá para AppRoutes.DEALS_LIST se logado,
-          // use: final targetRoute = authService.isLoggedIn ? AppRoutes.DEALS_LIST : AppRoutes.HOME;
-          const String targetRoute = AppRoutes.HOME; // Simplificado conforme seu código
+          const String targetRoute = AppRoutes.HOME;
           if (Get.currentRoute != targetRoute) {
             Get.offAllNamed(targetRoute);
-          } else {
-            print("[CommonAppBar] Já está na rota de destino: $targetRoute");
-            // Poderia implementar um refresh aqui se desejado, por exemplo, chamando um método do controller da home.
           }
         },
       ),
       title: Text(title),
       centerTitle: true,
-      actions: customActions ?? // Se não houver ações customizadas, usa o menu padrão
+      actions:
+          customActions ??
           [
+            // Botão para Mudar Tema (sempre visível)
+            Obx(() {
+              // Obx para reagir às mudanças no tema aplicado
+              // Usa a variável reativa do ThemeService
+              ThemeMode themeModeToShow =
+                  themeService.currentAppliedThemeMode.value;
+              IconData currentThemeIcon;
+              String currentThemeTooltip;
+
+              // Lógica para determinar o ícone e tooltip com base no tema ATUALMENTE APLICADO
+              // Se for 'system', precisamos verificar o brilho da plataforma.
+              if (themeModeToShow == ThemeMode.system) {
+                var platformBrightness = MediaQuery.platformBrightnessOf(
+                  context,
+                ); // Pega o brilho atual do sistema
+                if (platformBrightness == Brightness.dark) {
+                  currentThemeIcon = Icons
+                      .brightness_auto; // Ou um ícone específico para "sistema escuro"
+                  currentThemeTooltip = "Tema: Sistema (Escuro)";
+                } else {
+                  currentThemeIcon = Icons
+                      .brightness_auto_outlined; // Ou um ícone específico para "sistema claro"
+                  currentThemeTooltip = "Tema: Sistema (Claro)";
+                }
+              } else if (themeModeToShow == ThemeMode.dark) {
+                currentThemeIcon = Icons.dark_mode;
+                currentThemeTooltip = "Tema Atual: Escuro";
+              } else {
+                // ThemeMode.light
+                currentThemeIcon = Icons.light_mode;
+                currentThemeTooltip = "Tema Atual: Claro";
+              }
+
+              return PopupMenuButton<ThemeMode>(
+                icon: Icon(currentThemeIcon), // Ícone dinâmico
+                tooltip: currentThemeTooltip, // Tooltip dinâmico
+                offset: const Offset(0, kToolbarHeight - 10),
+                onSelected: (ThemeMode result) {
+                  themeService.switchThemeMode(
+                    result,
+                  ); // Chama o método do ThemeService
+                },
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<ThemeMode>>[
+                      const PopupMenuItem<ThemeMode>(
+                        value: ThemeMode.light,
+                        child: ListTile(
+                          leading: Icon(Icons.light_mode_outlined),
+                          title: Text('Claro'),
+                        ),
+                      ),
+                      const PopupMenuItem<ThemeMode>(
+                        value: ThemeMode.dark,
+                        child: ListTile(
+                          leading: Icon(Icons.dark_mode_outlined),
+                          title: Text('Escuro'),
+                        ),
+                      ),
+                      const PopupMenuItem<ThemeMode>(
+                        value: ThemeMode.system,
+                        child: ListTile(
+                          leading: Icon(Icons.settings_brightness_outlined),
+                          title: Text('Sistema'),
+                        ),
+                      ),
+                    ],
+              );
+            }),
+            // Botão de conta do usuário
             GetX<AuthService>(
-              builder: (authCtrl) { // authCtrl é a instância do AuthService fornecida pelo GetX builder
+              builder: (authCtrl) {
                 if (authCtrl.isLoggedIn) {
-                  // --- USUÁRIO LOGADO ---
                   return PopupMenuButton<String>(
                     tooltip: "Opções do Usuário",
-                    icon: const Icon(Icons.account_circle), // Ícone quando logado
-                    offset: const Offset(0, kToolbarHeight - 10), // Desloca o menu para baixo
+                    icon: const Icon(Icons.account_circle),
+                    offset: const Offset(0, kToolbarHeight - 10),
                     onSelected: (value) {
                       if (value == 'deals_list') {
                         if (Get.currentRoute != AppRoutes.DEALS_LIST) {
@@ -72,7 +129,9 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                       PopupMenuItem<String>(
                         value: 'profile',
-                        child: Text('Perfil (${authCtrl.currentUser.value?.firstName ?? 'Usuário'})'),
+                        child: Text(
+                          'Perfil (${authCtrl.currentUser.value?.firstName ?? 'Usuário'})',
+                        ),
                       ),
                       const PopupMenuItem<String>(
                         value: 'logout',
@@ -81,40 +140,32 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ],
                   );
                 } else {
-                  // --- USUÁRIO DESLOGADO ---
                   final String currentRoute = Get.currentRoute;
-                  // Só mostra o botão/menu de login se não estiver nas telas de Login ou Cadastro
-                  if (currentRoute != AppRoutes.LOGIN && currentRoute != AppRoutes.REGISTER) {
+                  if (currentRoute != AppRoutes.LOGIN &&
+                      currentRoute != AppRoutes.REGISTER) {
                     return PopupMenuButton<String>(
                       tooltip: "Acessar Conta",
-                      icon: const Icon(Icons.account_circle_outlined), // Ícone diferente ou o mesmo (Icons.account_circle)
-                      offset: const Offset(0, kToolbarHeight - 10), // Desloca o menu para baixo
+                      icon: const Icon(Icons.account_circle_outlined),
+                      offset: const Offset(0, kToolbarHeight - 10),
                       onSelected: (value) {
                         if (value == 'login') {
-                          // Get.currentRoute != AppRoutes.LOGIN já foi checado acima,
-                          // mas uma dupla verificação não prejudica se a lógica mudar.
                           Get.toNamed(AppRoutes.LOGIN);
                         }
                       },
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          value: 'login',
-                          child: Text('Login'),
-                        ),
-                        // Poderia adicionar "Cadastrar-se" aqui também se quisesse
-                        // const PopupMenuItem<String>(
-                        //   value: 'register',
-                        //   child: Text('Cadastrar-se'),
-                        // ),
-                      ],
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(
+                              value: 'login',
+                              child: Text('Login'),
+                            ),
+                          ],
                     );
                   }
-                  return const SizedBox.shrink(); // Não mostra nada se já estiver em Login/Cadastro
+                  return const SizedBox.shrink();
                 }
               },
             ),
-            // Adiciona um pequeno espaçamento à direita se o menu de ações padrão for renderizado
-            const SizedBox(width: 8), 
+            const SizedBox(width: 8),
           ],
     );
   }

@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart'; // Importe GetStorage
 import 'package:loot_app/app/routes/app_pages.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
-import 'package:loot_app/app/services/auth/auth_service.dart'; // Importe
+import 'package:loot_app/app/services/auth/auth_service.dart';
+import 'package:loot_app/app/services/theme_service.dart'; // Importe ThemeService
 import 'package:loot_app/app/themes/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeServices(); // Função para inicializar serviços
+  await initializeServices(); // Garante que os serviços sejam inicializados antes de runApp
   runApp(const MyApp());
 }
 
 Future<void> initializeServices() async {
-  print("Inicializando serviços...");
-  // Get.put<String>("https://users-backend-api-production.up.railway.app", tag: 'ApiBaseUrl', permanent: true);
-  Get.put<String>("http://localhost:8000", tag: 'ApiBaseUrl', permanent: true);
-  // Chama o método init() customizado e assíncrono do AuthService
+  await GetStorage.init(); // Essencial para GetStorage funcionar
   await Get.putAsync<AuthService>(() => AuthService().init());
-  print("AuthService inicializado e pronto via Get.putAsync.");
-  // Se tiver outros serviços para inicializar com Get.put ou Get.putAsync, faça aqui
+
+  final themeService = Get.put(ThemeService());
+  themeService.initTheme();
+
+  // Coloque aqui o Get.put para sua ApiBaseUrl e outros serviços globais
+  Get.put<String>(
+    "https://users-backend-api-production.up.railway.app",
+    tag: 'ApiBaseUrl',
+    permanent: true,
+  );
+  print("ApiBaseUrl configurada.");
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +37,8 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Loot',
       theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.SPLASH, // << ROTA INICIAL É A SPLASH
+      darkTheme: AppTheme.darkTheme,
+      initialRoute: AppRoutes.SPLASH,
       getPages: AppPages.pages,
       debugShowCheckedModeBanner: false,
     );
