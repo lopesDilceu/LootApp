@@ -7,6 +7,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  carousel_slider: ^5.0.0
   flutter:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
@@ -27,3 +28,13 @@ flutter:
 
   assets:
     - assets/images/ 
+  fonts:
+    - family: Roboto  # Nome da família da fonte que você usará no código
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700 # Bold
+        - asset: assets/fonts/Roboto-Light.ttf
+          weight: 300 # Light

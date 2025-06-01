@@ -24,8 +24,8 @@ class LoginScreen extends GetView<LoginController> {
             children: <Widget>[
               SvgPicture.asset(
                 'images/logos/logo-binoculars-text-light.svg',
-                width: 256,
-                height: 256,
+                width: 128,
+                height: 128,
                 colorFilter: null,
                 semanticsLabel: 'Logo Loot App',
               ),

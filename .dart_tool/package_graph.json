@@ -7,6 +7,7 @@
       "name": "loot_app",
       "version": "0.1.0",
       "dependencies": [
+        "carousel_slider",
         "flutter",
         "flutter_secure_storage",
         "flutter_svg",
@@ -140,6 +141,13 @@
         "meta",
         "sky_engine",
         "vector_math"
+      ]
+    },
+    {
+      "name": "carousel_slider",
+      "version": "5.0.0",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
-import 'package:loot_app/app/services/currency_service.dart'; // Para navegação para detalhes
+import 'package:loot_app/app/services/currency_service.dart';
 
 class SmallDealCardWidget extends StatelessWidget {
   final DealModel deal;
@@ -14,51 +14,55 @@ class SmallDealCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final CurrencyService currencyService = CurrencyService.to;
 
+    // Preparar URL da imagem com proxy
     String proxiedImageUrl = '';
     if (deal.thumb.isNotEmpty) {
       String encodedImageUrl = Uri.encodeComponent(deal.thumb);
-      // Obtém a URL base do proxy configurada globalmente
       proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl";
     }
 
     return Card(
-      elevation: 3,
-      margin: const EdgeInsets.all(6), // Margem menor
+      elevation: 2,
+      margin: const EdgeInsets.all(8), // Ajustando margem para consistência
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8), // Menos arredondamento
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
           // Log para verificar o objeto 'deal' ANTES de navegar
-          print(
-            "[CardWidget] Iniciando navegação para detalhes da promoção: ${deal.title}",
-          );
-          print(
-            "[CardWidget] Tipo do objeto 'deal' sendo passado: ${deal.runtimeType}",
-          );
-          // Para ver os dados, você pode logar o JSON (se tiver o método toJson no DealModel)
-          // print("[CardWidget] Dados do 'deal' (JSON): ${deal.toJson()}");
-          // Ou alguns campos específicos:
-          print(
-            "[CardWidget] Deal ID: ${deal.dealID}, Deal Thumb: ${deal.thumb}",
-          );
+          print("[CardWidget] Navegando para detalhes: ${deal.title}");
 
-          Get.toNamed(
-            AppRoutes.DEAL_DETAIL,
-            arguments: deal, // Passa o objeto 'deal'
-          );
+          Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
         },
         child: SizedBox(
-          width:
-              160, // Largura fixa para consistência em listas horizontais/grids
+          width: 160,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
-              // Imagem
+              // Exibindo o nome da loja
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  deal.storeName,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+              // Imagem da promoção
               Container(
-                height: 85,
+                height: 90, // Aumentando a altura da imagem para maior destaque
                 width: double.infinity,
-                color: Colors
-                    .grey[200], // Cor de fundo para o placeholder da imagem
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
+                ),
                 child: proxiedImageUrl.isNotEmpty
                     ? Image.network(
                         proxiedImageUrl,
@@ -89,37 +93,36 @@ class SmallDealCardWidget extends StatelessWidget {
                         ),
                       ),
               ),
-              // Detalhes
+              // Detalhes da promoção
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Título da promoção
                     Text(
                       deal.title,
                       style: Get.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600, // Leveza no peso da fonte
+                        fontSize:
+                            14, // Ajuste de tamanho para melhor legibilidade
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Preço da promoção com conversão de moeda
                         Obx(() {
                           if (!currencyService.ratesInitialized.value &&
                               currencyService.isLoadingRates.value) {
                             return const SizedBox(
-                              // Placeholder para o texto do preço
-                              height: 16, // Altura aproximada do texto do preço
+                              height: 16,
                               child: Center(
-                                child: SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 1.5,
-                                  ),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.5,
                                 ),
                               ),
                             );
@@ -133,10 +136,10 @@ class SmallDealCardWidget extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
-                            overflow: TextOverflow
-                                .ellipsis, // Evita quebra se o preço formatado for muito longo
+                            overflow: TextOverflow.ellipsis,
                           );
                         }),
+                        // Desconto percentual, se houver
                         if (deal.savingsPercentage > 0)
                           Text(
                             "-${deal.savingsPercentage.toStringAsFixed(0)}%",
