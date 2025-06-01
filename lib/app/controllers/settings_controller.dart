@@ -38,25 +38,25 @@ class SettingsController extends GetxController {
   }
 
   // --- Configurações de Moeda ---
-  // selectedCurrencyCode agora é uma referência direta à propriedade reativa do UserPreferencesService
-  RxString get currentCurrencySetting => _userPreferencesService.selectedCurrency;
+  // selectedCountryCode agora é uma referência direta à propriedade reativa do UserPreferencesService
+  RxString get currentCountrySetting => _userPreferencesService.selectedCountryCode;
 
-  List<Map<String, String>> get availableCurrencies => _userPreferencesService.getSupportedCurrencies();
+  List<Map<String, String>> get availableCurrencies => _userPreferencesService.getSupportedCountries();
 
-  void changeCurrency(String? newCurrencyCode) {
-    if (newCurrencyCode != null && newCurrencyCode.isNotEmpty) {
-      _userPreferencesService.setSelectedCurrency(newCurrencyCode);
-      // O snackbar pode ser movido para setSelectedCurrency no UserPreferencesService
+  void changeCountry(String? newCountryCode) {
+    if (newCountryCode != null && newCountryCode.isNotEmpty) {
+      _userPreferencesService.setSelectedCountryCode(newCountryCode);
+      // O snackbar pode ser movido para setSelectedCountry no UserPreferencesService
       Get.snackbar(
         "Moeda Alterada",
-        "A moeda para exibição de preços foi atualizada para $newCurrencyCode.",
+        "A moeda para exibição de preços foi atualizada para $newCountryCode.",
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 2),
       );
       // AVISO: Você pode precisar de uma forma de notificar outras partes do app
       // (como listas de deals) para recarregar/reconverter os preços.
       // Isso pode ser feito com um Get.forceAppUpdate(), ou fazendo seus controllers de deals
-      // ouvirem mudanças em UserPreferencesService.selectedCurrency.
+      // ouvirem mudanças em UserPreferencesService.selectedCountry.
     }
   }
 }

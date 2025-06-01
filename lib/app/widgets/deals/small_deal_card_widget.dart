@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
-import 'package:loot_app/app/services/currency_service.dart'; // Para navegação para detalhes
+// import 'package:loot_app/app/services/currency_service.dart'; // Para navegação para detalhes
 
 class SmallDealCardWidget extends StatelessWidget {
   final DealModel deal;
@@ -12,7 +12,6 @@ class SmallDealCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CurrencyService currencyService = CurrencyService.to;
 
     String proxiedImageUrl = '';
     if (deal.thumb.isNotEmpty) {
@@ -107,36 +106,65 @@ class SmallDealCardWidget extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Obx(() {
-                          if (!currencyService.ratesInitialized.value &&
-                              currencyService.isLoadingRates.value) {
-                            return const SizedBox(
-                              // Placeholder para o texto do preço
-                              height: 16, // Altura aproximada do texto do preço
-                              child: Center(
-                                child: SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 1.5,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                          String displaySalePrice = currencyService
-                              .getFormattedPrice(deal.salePriceValue);
-                          return Text(
-                            displaySalePrice,
-                            style: TextStyle(
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                            overflow: TextOverflow
-                                .ellipsis, // Evita quebra se o preço formatado for muito longo
-                          );
-                        }),
+                        Obx(() { // Observa os campos Rx DENTRO do deal
+                if (deal.isLoadingRegionalPrice.value) {
+                  return const SizedBox(
+                    width: 60, // Para manter o espaço do preço
+                    child: Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))),
+                  );
+                }
+
+                String displaySalePrice;
+                // Prioriza o preço regional formatado se disponível e buscado
+                if (deal.regionalPriceFetched.value && deal.regionalPriceFormatted.value != null) {
+                  displaySalePrice = deal.regionalPriceFormatted.value!;
+                } else {
+                  // Fallback para o preço USD da CheapShark (sem conversão aqui, apenas exibição)
+                  // A conversão com CurrencyService seria um fallback mais profundo se desejado.
+                  displaySalePrice = "\$${deal.salePriceValue.toStringAsFixed(2)} (USD)";
+                }
+
+                // Você precisaria de uma lógica similar para deal.normalPrice se quiser exibi-lo
+                // e se o GG.deals o fornecer (ex: através de deal.regionalNormalPriceFormatted)
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      displaySalePrice,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16, // Ajustado para consistência
+                        color: Colors.green[700],
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                    // Se você tiver o preço normal regionalizado ou quiser mostrar o USD como antes:
+                    // if (deal.normalPriceValue > 0 && deal.normalPriceValue > deal.salePriceValue)
+                    //   Text(
+                    //     /* Lógica para preço normal regionalizado ou fallback USD */
+                    //     "\$${deal.normalPriceValue.toStringAsFixed(2)}",
+                    //     style: TextStyle(decoration: TextDecoration.lineThrough, fontSize: 10, color: Colors.grey[600]),
+                    //   ),
+                    if (deal.savingsPercentage > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            "-${deal.savingsPercentage.toStringAsFixed(0)}%",
+                            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }),
                         if (deal.savingsPercentage > 0)
                           Text(
                             "-${deal.savingsPercentage.toStringAsFixed(0)}%",

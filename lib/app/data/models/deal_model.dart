@@ -1,4 +1,8 @@
 // lib/app/data/models/deal_model.dart
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:loot_app/app/data/models/ggd_model.dart';
+import 'package:loot_app/app/services/user_preferences_service.dart';
+
 class DealModel {
   final String title;
   final String dealID;
@@ -14,6 +18,13 @@ class DealModel {
   final int? releaseDate; // Timestamp Unix
   final String thumb; // URL da imagem thumbnail do jogo
   // Adicione mais campos conforme a necessidade e o que a API CheapShark retorna
+
+  // Novos campos para preço regional (opcionais)
+  RxnString regionalPriceFormatted = RxnString(); // Torna reativo
+  RxnString regionalCurrencySymbol = RxnString();
+  RxnString regionalShopName = RxnString(); // Nome da loja segundo GG.deals
+  RxBool isLoadingRegionalPrice = false.obs;
+  RxBool regionalPriceFetched = false.obs; // Para saber se já tentamos buscar
 
   DealModel({
     required this.title,
@@ -73,5 +84,20 @@ class DealModel {
       // Adicione mais conforme necessário
       default: return 'Loja ID: $storeID';
     }
+  }
+
+  // Método para atualizar com dados da GG.deals
+  void updateWithGGDPrice(GGDShopPrice? ggdPrice) { // GGDShopPrice é o modelo da GG.deals
+    if (ggdPrice != null && ggdPrice.priceFormatted != null) {
+      regionalPriceFormatted.value = ggdPrice.priceFormatted;
+      regionalCurrencySymbol.value = ggdPrice.currencySymbol ?? UserPreferencesService.to.getCurrencySymbol(ggdPrice.currencyCode ?? UserPreferencesService.to.selectedCountryCode.value); // Adapte conforme necessário
+      regionalShopName.value = ggdPrice.shopName;
+    } else {
+      regionalPriceFormatted.value = null; 
+      regionalCurrencySymbol.value = null;
+      regionalShopName.value = null;
+    }
+    regionalPriceFetched.value = true; // Tentativa de busca concluída
+    isLoadingRegionalPrice.value = false;
   }
 }

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
-import 'package:loot_app/app/services/currency_service.dart';
+// import 'package:loot_app/app/services/currency_service.dart';
 
 class ListItemDealCardWidget extends StatelessWidget {
   final DealModel deal;
@@ -12,8 +12,6 @@ class ListItemDealCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CurrencyService currencyService = CurrencyService.to;
-
     String proxiedImageUrl = '';
     if (deal.thumb.isNotEmpty) {
       String encodedImageUrl = Uri.encodeComponent(deal.thumb);
@@ -124,22 +122,10 @@ class ListItemDealCardWidget extends StatelessWidget {
               const SizedBox(width: 10),
               // Price Info
               Obx(() {
-                // Obx para reagir a mudanças de moeda (via UserPreferencesService)
-                // e disponibilidade de taxas (via CurrencyService)
-
-                // O Obx precisa "ouvir" as variáveis reativas que afetam o resultado de getFormattedPrice.
-                // Para garantir isso, podemos acessar as dependências dentro do Obx.
-                // Embora o GetX seja bom em rastrear, ser explícito não prejudica.
-                // UserPreferencesService.to.selectedCurrency.value; // Garante que o Obx ouça a moeda
-                // currencyService.ratesInitialized.value; // Garante que o Obx ouça o estado das taxas
-                // currencyService.exchangeRatesFromUSD; // Garante que o Obx ouça as taxas em si
-                // No entanto, o GetX geralmente é inteligente o suficiente se getFormattedPrice
-                // internamente acessa essas variáveis Rx.
-
-                if (!currencyService.ratesInitialized.value &&
-                    currencyService.isLoadingRates.value) {
+                // Observa os campos Rx DENTRO do deal
+                if (deal.isLoadingRegionalPrice.value) {
                   return const SizedBox(
-                    width: 60,
+                    width: 60, // Para manter o espaço do preço
                     child: Center(
                       child: SizedBox(
                         width: 16,
@@ -150,41 +136,41 @@ class ListItemDealCardWidget extends StatelessWidget {
                   );
                 }
 
-                String displaySalePrice = currencyService.getFormattedPrice(
-                  deal.salePriceValue,
-                );
-                String displayNormalPrice = "";
-                if (deal.normalPriceValue > 0 &&
-                    deal.normalPriceValue > deal.salePriceValue) {
-                  displayNormalPrice = currencyService.getFormattedPrice(
-                    deal.normalPriceValue,
-                  );
+                String displaySalePrice;
+                // Prioriza o preço regional formatado se disponível e buscado
+                if (deal.regionalPriceFetched.value &&
+                    deal.regionalPriceFormatted.value != null) {
+                  displaySalePrice = deal.regionalPriceFormatted.value!;
+                } else {
+                  // Fallback para o preço USD da CheapShark (sem conversão aqui, apenas exibição)
+                  // A conversão com CurrencyService seria um fallback mais profundo se desejado.
+                  displaySalePrice =
+                      "\$${deal.salePriceValue.toStringAsFixed(2)} (USD)";
                 }
 
+                // Você precisaria de uma lógica similar para deal.normalPrice se quiser exibi-lo
+                // e se o GG.deals o fornecer (ex: através de deal.regionalNormalPriceFormatted)
+
                 return Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center, // Ajuste para alinhar melhor
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       displaySalePrice,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize:
-                            16, // Ligeiramente menor para caber melhor com símbolos longos
+                        fontSize: 16, // Ajustado para consistência
                         color: Colors.green[700],
                       ),
+                      textAlign: TextAlign.right,
                     ),
-                    if (displayNormalPrice.isNotEmpty)
-                      Text(
-                        displayNormalPrice,
-                        style: TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          fontSize: 10, // Ligeiramente menor
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    // O widget de porcentagem de economia pode continuar como estava
+                    // Se você tiver o preço normal regionalizado ou quiser mostrar o USD como antes:
+                    // if (deal.normalPriceValue > 0 && deal.normalPriceValue > deal.salePriceValue)
+                    //   Text(
+                    //     /* Lógica para preço normal regionalizado ou fallback USD */
+                    //     "\$${deal.normalPriceValue.toStringAsFixed(2)}",
+                    //     style: TextStyle(decoration: TextDecoration.lineThrough, fontSize: 10, color: Colors.grey[600]),
+                    //   ),
                     if (deal.savingsPercentage > 0)
                       Padding(
                         padding: const EdgeInsets.only(top: 3.0),

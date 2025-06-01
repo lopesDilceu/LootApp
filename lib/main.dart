@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart'; // Importe GetStorage
+import 'package:loot_app/app/data/providers/ggd_api_provider.dart';
 import 'package:loot_app/app/routes/app_pages.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
-import 'package:loot_app/app/services/currency_service.dart';
+// import 'package:loot_app/app/services/currency_service.dart';
 import 'package:loot_app/app/services/theme_service.dart'; // Importe ThemeService
 import 'package:loot_app/app/services/user_preferences_service.dart';
 import 'package:loot_app/app/themes/app_theme.dart';
@@ -33,8 +34,8 @@ Future<void> initializeServices() async {
   Get.put(UserPreferencesService(),); // Esta linha dispara o onInit() do UserPreferencesService
   print("UserPreferencesService inicializado."); // Log depois
 
-  await Get.putAsync<CurrencyService>(() => CurrencyService().initService()); // Chama o initService
-
+  // await Get.putAsync<CurrencyService>(() => CurrencyService().initService()); // Chama o initService
+  Get.put(GGDotDealsApiProvider());
   // ... (seu Get.put para ApiBaseUrl)
 }
 

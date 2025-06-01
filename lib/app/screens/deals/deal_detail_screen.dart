@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/controllers/deal_detail_controller.dart';
-import 'package:loot_app/app/services/currency_service.dart';
 import 'package:loot_app/app/widgets/common/app_bar.dart';
 
 class DealDetailScreen extends GetView<DealDetailController> {
@@ -48,8 +47,7 @@ class DealDetailScreen extends GetView<DealDetailController> {
 
   @override
   Widget build(BuildContext context) {
-    final CurrencyService currencyService =
-        CurrencyService.to; // No topo do build ou dentro do Obx
+    // final CurrencyService currencyService = CurrencyService.to; // No topo do build ou dentro do Obx
 
     return Scaffold(
       appBar: CommonAppBar(
@@ -62,6 +60,24 @@ class DealDetailScreen extends GetView<DealDetailController> {
             child: Text("Detalhes da promoção não disponíveis."),
           );
         }
+
+        if (currentDeal.isLoadingRegionalPrice.value) {
+          return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 10), Text("Buscando preço regional...")],));
+        }
+
+        // Determina qual preço exibir
+        String salePriceToShow = "\$${currentDeal.salePriceValue.toStringAsFixed(2)} (USD)"; // Fallback USD
+        if (currentDeal.regionalPriceFetched.value) { // Se a busca na GG.deals foi tentada
+          if (currentDeal.regionalPriceFormatted.value != null && currentDeal.regionalPriceFormatted.value!.isNotEmpty) {
+            salePriceToShow = currentDeal.regionalPriceFormatted.value!;
+          } else {
+            // Se não encontrou preço regional, mas a busca foi feita, mantém o fallback USD
+            // ou você pode mostrar uma mensagem específica
+            print("Preço regional não disponível para ${currentDeal.title}, mostrando USD.");
+          }
+        }
+        // Para o preço normal, você precisaria de uma lógica similar se quiser exibi-lo regionalizado
+        // e se a GG.deals API o retornar (ggdPriceInfo.priceOld).
 
         final String proxiedImageUrlToShow =
             controller.displayImageUrl; // Já usa o proxy
@@ -150,18 +166,15 @@ class DealDetailScreen extends GetView<DealDetailController> {
               ),
               const SizedBox(height: 12),
 
-              _buildInfoRow("Loja", currentDeal.storeName),
+              _buildInfoRow("Loja", currentDeal.regionalShopName.value ?? currentDeal.storeName), // Mostra nome da loja da GG.deals se disponível
               _buildInfoRow(
                 "Preço em Promoção",
-                currencyService.getFormattedPrice(currentDeal.salePriceValue),
+                salePriceToShow, // << USA O PREÇO REGIONAL (ou fallback)
                 valueColor: Colors.green[700],
                 isBold: true,
               ),
-              _buildInfoRow(
-                "Preço Normal",
-                currencyService.getFormattedPrice(currentDeal.normalPriceValue),
-                valueColor: Colors.grey[700],
-              ),
+              _buildInfoRow("Você Economiza", "${currentDeal.savingsPercentage.toStringAsFixed(0)}% OFF", 
+                  valueColor: Colors.redAccent, isBold: true),
               _buildInfoRow(
                 "Você Economiza",
                 "${currentDeal.savingsPercentage.toStringAsFixed(0)}% OFF",

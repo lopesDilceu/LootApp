@@ -1,107 +1,88 @@
-import 'package:flutter/material.dart'; // Para Locale
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+// import 'package:loot_app/app/services/currency_service.dart';
 
 class UserPreferencesService extends GetxService {
   static UserPreferencesService get to => Get.find();
   final _box = GetStorage();
 
-  final String _currencyKey = 'user_selected_currency';
-
-  late RxString selectedCurrency; // Mantém como late RxString
+  final String _countryKey = 'user_selected_country_code';
+  late RxString selectedCountryCode; // Ex: "BR", "US", "DE"
 
   @override
   void onInit() {
     super.onInit();
     print("[UserPreferencesService] onInit - INÍCIO");
     // Passo 1: Obtenha o valor da string
-    String initialCurrencyValue = _box.read(_currencyKey) ?? _defaultCurrency;
+    String initialCountryCode = _box.read(_countryKey) ?? _defaultCountryCode;
     print(
-      "[UserPreferencesService] Valor inicial da moeda lido/padrão: $initialCurrencyValue",
+      "[UserPreferencesService] Valor inicial da moeda lido/padrão: $initialCountryCode",
     );
 
     // Passo 2: Crie o RxString com este valor
-    selectedCurrency = RxString(initialCurrencyValue);
+    selectedCountryCode = RxString(initialCountryCode);
     // OU, para ser explícito com GetX e garantir que a reatividade seja registrada corretamente:
-    // selectedCurrency = initialCurrencyValue.obs; // Se esta linha ainda der erro, a abaixo é mais segura:
-    // selectedCurrency = Get.rx(initialCurrencyValue); // Outra forma de criar um Rx<String>
+    // selectedCurrency = initialCountryCode.obs; // Se esta linha ainda der erro, a abaixo é mais segura:
+    // selectedCurrency = Get.rx(initialCountryCode); // Outra forma de criar um Rx<String>
 
     print(
-      "[UserPreferencesService] Moeda inicializada: ${selectedCurrency.value}",
+      "[UserPreferencesService] Moeda inicializada: ${selectedCountryCode.value}",
     );
     print("[UserPreferencesService] onInit - FIM");
   }
 
-  String get _defaultCurrency {
-    // ... (seu método _defaultCurrency como antes)
+  String get _defaultCountryCode {
     Locale? deviceLocale = Get.deviceLocale;
-    String defaultCurrencyValue = 'USD'; // Padrão fallback
-    if (deviceLocale != null) {
-      if (deviceLocale.countryCode == 'BR')
-        defaultCurrencyValue = 'BRL';
-      else if (deviceLocale.countryCode == 'US')
-        defaultCurrencyValue = 'USD';
-      // ... (lógica para euroZoneCountries)
-      else {
-        List<String> euroZoneCountries = [
-          'DE',
-          'FR',
-          'IT',
-          'ES',
-          'PT',
-          'NL',
-          'BE',
-          'AT',
-          'FI',
-          'GR',
-          'IE',
-          'CY',
-          'EE',
-          'LV',
-          'LT',
-          'LU',
-          'MT',
-          'SK',
-          'SI',
-        ];
-        if (euroZoneCountries.contains(deviceLocale.countryCode?.toUpperCase()))
-          defaultCurrencyValue = 'EUR';
-      }
-    }
-    print(
-      "[UserPreferencesService] _defaultCurrency calculado: $defaultCurrencyValue",
-    );
-    return defaultCurrencyValue;
+    // Retorna o código do país do dispositivo se disponível, senão USD (EUA)
+    return deviceLocale?.countryCode?.toUpperCase() ?? 'US';
   }
 
-  void setSelectedCurrency(String currencyCode) {
-    _box.write(_currencyKey, currencyCode);
-    selectedCurrency.value = currencyCode;
-    print("[UserPreferencesService] Moeda definida para: $currencyCode");
+  void setSelectedCountryCode(String countryCode) {
+    final newCode = countryCode.toUpperCase();
+    if (selectedCountryCode.value == newCode) return; // Evita processamento desnecessário se não mudou
+
+    _box.write(_countryKey, newCode);
+    selectedCountryCode.value = newCode; // Esta atualização DISPARARÁ os listeners (ex: no DealsController)
+    print("[UserPreferencesService] País definido para: ${selectedCountryCode.value}");
+
+    // A chamada abaixo para CurrencyService é opcional e depende se você ainda usa
+    // o CurrencyService para conversão direta como fallback principal.
+    // Se o foco agora é GG.deals, o DealsController que deve reagir.
+    // Se ainda quiser atualizar as taxas do CurrencyService:
+    // if (Get.isRegistered<CurrencyService>()) {
+    //   CurrencyService.to.fetchExchangeRatesIfNeeded(force: true);
+    // }
   }
 
-  List<Map<String, String>> getSupportedCurrencies() {
+  // Países suportados para seleção (e para a API da GG.deals)
+  List<Map<String, String>> getSupportedCountries() {
     return [
-      {'code': 'USD', 'name': 'Dólar Americano (\$ USD)'},
-      {'code': 'BRL', 'name': 'Real Brasileiro (R\$ BRL)'},
-      {'code': 'EUR', 'name': 'Euro (€ EUR)'},
+      {'code': 'US', 'name': 'Estados Unidos (USD)'},
+      {'code': 'BR', 'name': 'Brasil (BRL)'},
+      {'code': 'DE', 'name': 'Alemanha (EUR)'},
+      {'code': 'GB', 'name': 'Reino Unido (GBP)'},
+      // Adicione mais países/regiões que a GG.deals suporta e que são relevantes
     ];
   }
 
-    // Helper para obter o símbolo da moeda
-  String getCurrencySymbol(String currencyCode) {
+  // Helpers para símbolo/locale podem ainda ser úteis se GG.deals não retornar símbolo
+  // ou se você precisar formatar um preço numérico que ela retorne.
+  // A GG.deals geralmente retorna 'price_formatted' e 'currency_formatted'.
+   String getCurrencySymbol(String currencyCode) {
     switch (currencyCode.toUpperCase()) {
       case 'BRL': return 'R\$';
       case 'EUR': return '€';
+      case 'GBP': return '£';
       case 'USD': default: return '\$';
     }
   }
 
-  // Helper para obter o locale para formatação
   String getLocaleForCurrency(String currencyCode) {
     switch (currencyCode.toUpperCase()) {
       case 'BRL': return 'pt_BR';
-      case 'EUR': return 'de_DE'; // Formato Euro comum, pode ser 'fr_FR', 'es_ES', etc.
+      case 'EUR': return 'de_DE'; 
+      case 'GBP': return 'en_GB';
       case 'USD': default: return 'en_US';
     }
   }

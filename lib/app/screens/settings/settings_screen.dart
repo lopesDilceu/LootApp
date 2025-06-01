@@ -62,7 +62,7 @@ class SettingsScreen extends GetView<SettingsController> {
                     vertical: 15,
                   ),
                 ),
-                value: controller.currentCurrencySetting.value,
+                value: controller.currentCountrySetting.value,
                 items: controller.availableCurrencies.map((
                   Map<String, String> currency,
                 ) {
@@ -72,7 +72,7 @@ class SettingsScreen extends GetView<SettingsController> {
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
-                  controller.changeCurrency(newValue);
+                  controller.changeCountry(newValue);
                 },
               ),
             ),
