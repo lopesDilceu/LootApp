@@ -46,28 +46,37 @@ class SettingsScreen extends GetView<SettingsController> {
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 24),
-            // Text(
-            //   "Moeda para Preços",
-            //   style: Get.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            // ),
-            // const SizedBox(height: 8),
-            // Obx(() => DropdownButtonFormField<String>(
-            //       decoration: const InputDecoration(
-            //         border: OutlineInputBorder(),
-            //         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-            //       ),
-            //       value: controller.currentCurrencySetting.value,
-            //       items: controller.availableCurrencies.map((Map<String, String> currency) {
-            //         return DropdownMenuItem<String>(
-            //           value: currency['code'],
-            //           child: Text(currency['name']!),
-            //         );
-            //       }).toList(),
-            //       onChanged: (String? newValue) {
-            //         controller.changeCurrency(newValue);
-            //       },
-            //     )),
-            // const SizedBox(height: 20),
+            Text(
+              "Moeda para Preços",
+              style: Get.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Obx(
+              () => DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 15,
+                  ),
+                ),
+                value: controller.currentCurrencySetting.value,
+                items: controller.availableCurrencies.map((
+                  Map<String, String> currency,
+                ) {
+                  return DropdownMenuItem<String>(
+                    value: currency['code'],
+                    child: Text(currency['name']!),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  controller.changeCurrency(newValue);
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
             // Você pode adicionar mais configurações aqui no futuro
           ],
         ),

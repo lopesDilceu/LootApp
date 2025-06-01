@@ -16,15 +16,19 @@ class UserPreferencesService extends GetxService {
     print("[UserPreferencesService] onInit - INÍCIO");
     // Passo 1: Obtenha o valor da string
     String initialCurrencyValue = _box.read(_currencyKey) ?? _defaultCurrency;
-    print("[UserPreferencesService] Valor inicial da moeda lido/padrão: $initialCurrencyValue");
+    print(
+      "[UserPreferencesService] Valor inicial da moeda lido/padrão: $initialCurrencyValue",
+    );
 
     // Passo 2: Crie o RxString com este valor
-    selectedCurrency = RxString(initialCurrencyValue); 
+    selectedCurrency = RxString(initialCurrencyValue);
     // OU, para ser explícito com GetX e garantir que a reatividade seja registrada corretamente:
     // selectedCurrency = initialCurrencyValue.obs; // Se esta linha ainda der erro, a abaixo é mais segura:
     // selectedCurrency = Get.rx(initialCurrencyValue); // Outra forma de criar um Rx<String>
 
-    print("[UserPreferencesService] Moeda inicializada: ${selectedCurrency.value}");
+    print(
+      "[UserPreferencesService] Moeda inicializada: ${selectedCurrency.value}",
+    );
     print("[UserPreferencesService] onInit - FIM");
   }
 
@@ -33,15 +37,40 @@ class UserPreferencesService extends GetxService {
     Locale? deviceLocale = Get.deviceLocale;
     String defaultCurrencyValue = 'USD'; // Padrão fallback
     if (deviceLocale != null) {
-      if (deviceLocale.countryCode == 'BR') defaultCurrencyValue = 'BRL';
-      else if (deviceLocale.countryCode == 'US') defaultCurrencyValue = 'USD';
+      if (deviceLocale.countryCode == 'BR')
+        defaultCurrencyValue = 'BRL';
+      else if (deviceLocale.countryCode == 'US')
+        defaultCurrencyValue = 'USD';
       // ... (lógica para euroZoneCountries)
       else {
-         List<String> euroZoneCountries = ['DE', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'AT', 'FI', 'GR', 'IE', 'CY', 'EE', 'LV', 'LT', 'LU', 'MT', 'SK', 'SI'];
-         if (euroZoneCountries.contains(deviceLocale.countryCode?.toUpperCase())) defaultCurrencyValue = 'EUR';
+        List<String> euroZoneCountries = [
+          'DE',
+          'FR',
+          'IT',
+          'ES',
+          'PT',
+          'NL',
+          'BE',
+          'AT',
+          'FI',
+          'GR',
+          'IE',
+          'CY',
+          'EE',
+          'LV',
+          'LT',
+          'LU',
+          'MT',
+          'SK',
+          'SI',
+        ];
+        if (euroZoneCountries.contains(deviceLocale.countryCode?.toUpperCase()))
+          defaultCurrencyValue = 'EUR';
       }
     }
-    print("[UserPreferencesService] _defaultCurrency calculado: $defaultCurrencyValue");
+    print(
+      "[UserPreferencesService] _defaultCurrency calculado: $defaultCurrencyValue",
+    );
     return defaultCurrencyValue;
   }
 
@@ -57,5 +86,23 @@ class UserPreferencesService extends GetxService {
       {'code': 'BRL', 'name': 'Real Brasileiro (R\$ BRL)'},
       {'code': 'EUR', 'name': 'Euro (€ EUR)'},
     ];
+  }
+
+    // Helper para obter o símbolo da moeda
+  String getCurrencySymbol(String currencyCode) {
+    switch (currencyCode.toUpperCase()) {
+      case 'BRL': return 'R\$';
+      case 'EUR': return '€';
+      case 'USD': default: return '\$';
+    }
+  }
+
+  // Helper para obter o locale para formatação
+  String getLocaleForCurrency(String currencyCode) {
+    switch (currencyCode.toUpperCase()) {
+      case 'BRL': return 'pt_BR';
+      case 'EUR': return 'de_DE'; // Formato Euro comum, pode ser 'fr_FR', 'es_ES', etc.
+      case 'USD': default: return 'en_US';
+    }
   }
 }

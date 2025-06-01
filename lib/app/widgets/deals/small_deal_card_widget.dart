@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
-import 'package:loot_app/app/routes/app_routes.dart'; // Para navegação para detalhes
+import 'package:loot_app/app/routes/app_routes.dart';
+import 'package:loot_app/app/services/currency_service.dart'; // Para navegação para detalhes
 
 class SmallDealCardWidget extends StatelessWidget {
   final DealModel deal;
@@ -11,6 +12,8 @@ class SmallDealCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CurrencyService currencyService = CurrencyService.to;
+
     String proxiedImageUrl = '';
     if (deal.thumb.isNotEmpty) {
       String encodedImageUrl = Uri.encodeComponent(deal.thumb);
@@ -104,14 +107,36 @@ class SmallDealCardWidget extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "\$${deal.salePrice}",
-                          style: TextStyle(
-                            color: Colors.green[700],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
+                        Obx(() {
+                          if (!currencyService.ratesInitialized.value &&
+                              currencyService.isLoadingRates.value) {
+                            return const SizedBox(
+                              // Placeholder para o texto do preço
+                              height: 16, // Altura aproximada do texto do preço
+                              child: Center(
+                                child: SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          String displaySalePrice = currencyService
+                              .getFormattedPrice(deal.salePriceValue);
+                          return Text(
+                            displaySalePrice,
+                            style: TextStyle(
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow
+                                .ellipsis, // Evita quebra se o preço formatado for muito longo
+                          );
+                        }),
                         if (deal.savingsPercentage > 0)
                           Text(
                             "-${deal.savingsPercentage.toStringAsFixed(0)}%",

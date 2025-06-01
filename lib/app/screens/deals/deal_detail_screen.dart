@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/controllers/deal_detail_controller.dart';
+import 'package:loot_app/app/services/currency_service.dart';
 import 'package:loot_app/app/widgets/common/app_bar.dart';
 
 class DealDetailScreen extends GetView<DealDetailController> {
@@ -47,6 +48,9 @@ class DealDetailScreen extends GetView<DealDetailController> {
 
   @override
   Widget build(BuildContext context) {
+    final CurrencyService currencyService =
+        CurrencyService.to; // No topo do build ou dentro do Obx
+
     return Scaffold(
       appBar: CommonAppBar(
         title: controller.deal.value?.title ?? "Detalhes da Promoção",
@@ -149,13 +153,13 @@ class DealDetailScreen extends GetView<DealDetailController> {
               _buildInfoRow("Loja", currentDeal.storeName),
               _buildInfoRow(
                 "Preço em Promoção",
-                "\$${currentDeal.salePrice}",
+                currencyService.getFormattedPrice(currentDeal.salePriceValue),
                 valueColor: Colors.green[700],
                 isBold: true,
               ),
               _buildInfoRow(
                 "Preço Normal",
-                "\$${currentDeal.normalPrice}",
+                currencyService.getFormattedPrice(currentDeal.normalPriceValue),
                 valueColor: Colors.grey[700],
               ),
               _buildInfoRow(

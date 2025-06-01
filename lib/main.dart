@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart'; // Importe GetStorage
 import 'package:loot_app/app/routes/app_pages.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
+import 'package:loot_app/app/services/currency_service.dart';
 import 'package:loot_app/app/services/theme_service.dart'; // Importe ThemeService
 import 'package:loot_app/app/services/user_preferences_service.dart';
 import 'package:loot_app/app/themes/app_theme.dart';
@@ -29,10 +30,10 @@ Future<void> initializeServices() async {
   print("ThemeService inicializado e tema aplicado.");
 
   print("Inicializando UserPreferencesService..."); // Log antes
-  Get.put(
-    UserPreferencesService(),
-  ); // Esta linha dispara o onInit() do UserPreferencesService
+  Get.put(UserPreferencesService(),); // Esta linha dispara o onInit() do UserPreferencesService
   print("UserPreferencesService inicializado."); // Log depois
+
+  await Get.putAsync<CurrencyService>(() => CurrencyService().initService()); // Chama o initService
 
   // ... (seu Get.put para ApiBaseUrl)
 }
