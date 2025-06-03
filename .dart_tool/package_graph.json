@@ -15,6 +15,7 @@
         "get_storage",
         "http",
         "intl",
+        "smooth_page_indicator",
         "url_launcher"
       ],
       "devDependencies": [
@@ -69,6 +70,13 @@
         "url_launcher_platform_interface",
         "url_launcher_web",
         "url_launcher_windows"
+      ]
+    },
+    {
+      "name": "smooth_page_indicator",
+      "version": "1.2.1",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

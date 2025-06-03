@@ -107,7 +107,7 @@ class RegisterController extends GetxController {
             duration: const Duration(seconds: 4),
           );
           // Navega para a tela principal LOGADA (ex: DealsListScreen)
-          Get.offAllNamed(AppRoutes.DEALS_LIST);
+          Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 1});
         } else {
           print("[RegisterController] Cadastro FALHOU: _authApiProvider.register() retornou null.");
           // O AuthApiProvider já deve ter mostrado um Snackbar de erro.

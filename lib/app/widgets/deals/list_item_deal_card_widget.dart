@@ -21,7 +21,7 @@ class ListItemDealCardWidget extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       child: InkWell(

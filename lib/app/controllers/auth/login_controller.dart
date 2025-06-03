@@ -100,7 +100,7 @@ class LoginController extends GetxController {
             colorText: Colors.white,
           );
           // Navega para a tela principal LOGADA (ex: DealsListScreen)
-          Get.offAllNamed(AppRoutes.DEALS_LIST);
+          Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 1});
         } else {
           print(
             "[LoginController] Login FALHOU: _authApiProvider.login() retornou null.",

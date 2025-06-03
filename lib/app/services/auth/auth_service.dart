@@ -134,6 +134,6 @@ class AuthService extends GetxService {
       print("[AuthService] StackTrace do erro ao deletar: $stackTrace");
     }
     print("[AuthService] Usuário deslogado.");
-    Get.offAllNamed(AppRoutes.LOGIN); 
+    Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 0}); 
   }
 }

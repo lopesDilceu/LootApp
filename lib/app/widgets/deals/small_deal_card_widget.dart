@@ -11,101 +11,133 @@ class SmallDealCardWidget extends StatelessWidget {
   const SmallDealCardWidget({super.key, required this.deal});
 
   @override
-  Widget build(BuildContext context) {
-    final CurrencyService currencyService = CurrencyService.to;
+Widget build(BuildContext context) {
+  final CurrencyService currencyService = CurrencyService.to;
 
-    // Preparar URL da imagem com proxy
-    String proxiedImageUrl = '';
-    if (deal.thumb.isNotEmpty) {
-      String encodedImageUrl = Uri.encodeComponent(deal.thumb);
-      proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl";
-    }
+  String proxiedImageUrl = '';
+  if (deal.thumb.isNotEmpty) {
+    String encodedImageUrl = Uri.encodeComponent(deal.thumb);
+    proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl";
+    
+  }
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.all(8), // Ajustando margem para consistência
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8), // Menos arredondamento
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          // Log para verificar o objeto 'deal' ANTES de navegar
-          print("[CardWidget] Navegando para detalhes: ${deal.title}");
+  final double screenWidth = MediaQuery.of(context).size.width;
+  final double cardWidth = screenWidth * 0.9; // 80% da largura da tela
+  final double cardHeight = 180; // altura fixa para evitar overflow
 
-          Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
-        },
-        child: SizedBox(
-          width: 160,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Exibindo o nome da loja
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+  return Card(
+    elevation: 0,
+    margin: const EdgeInsets.all(3),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(5),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () {
+        print("[CardWidget] Navegando para detalhes: ${deal.title}");
+        Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
+      },
+      child: SizedBox(
+        width: cardWidth,
+        height: cardHeight,
+        child: Stack(
+          children: [
+            // Imagem de fundo ocupando todo o card
+            Positioned.fill(
+              child: proxiedImageUrl.isNotEmpty
+                  ? Image.network(
+                      proxiedImageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, st) => Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: Colors.grey,
+                            size: 40,
+                          ),
+                        ),
+                      ),
+                      loadingBuilder: (ctx, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            width: 30,
+                            height: 30,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colors.grey,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+            ),
+
+            // Gradiente e texto - faixa superior
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black87,
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
                 child: Text(
                   deal.storeName,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey,
+                    color: Colors.white,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Imagem da promoção
-              Container(
-                height: 90, // Aumentando a altura da imagem para maior destaque
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
+            ),
+
+            // Gradiente e texto - faixa inferior
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.black87,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
                 ),
-                child: proxiedImageUrl.isNotEmpty
-                    ? Image.network(
-                        proxiedImageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (ctx, err, st) => const Center(
-                          child: Icon(
-                            Icons.broken_image_outlined,
-                            color: Colors.grey,
-                            size: 30,
-                          ),
-                        ),
-                        loadingBuilder: (ctx, child, progress) {
-                          if (progress == null) return child;
-                          return const Center(
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        },
-                      )
-                    : const Center(
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.grey,
-                          size: 30,
-                        ),
-                      ),
-              ),
-              // Detalhes da promoção
-              Padding(
-                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Título da promoção
                     Text(
                       deal.title,
                       style: Get.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600, // Leveza no peso da fonte
-                        fontSize:
-                            14, // Ajuste de tamanho para melhor legibilidade
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Colors.white,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -114,7 +146,6 @@ class SmallDealCardWidget extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Preço da promoção com conversão de moeda
                         Obx(() {
                           if (!currencyService.ratesInitialized.value &&
                               currencyService.isLoadingRates.value) {
@@ -123,23 +154,23 @@ class SmallDealCardWidget extends StatelessWidget {
                               child: Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 1.5,
+                                  color: Colors.white,
                                 ),
                               ),
                             );
                           }
-                          String displaySalePrice = currencyService
-                              .getFormattedPrice(deal.salePriceValue);
+                          String displaySalePrice =
+                              currencyService.getFormattedPrice(deal.salePriceValue);
                           return Text(
                             displaySalePrice,
-                            style: TextStyle(
-                              color: Colors.green[700],
+                            style: const TextStyle(
+                              color: Colors.greenAccent,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
                             overflow: TextOverflow.ellipsis,
                           );
                         }),
-                        // Desconto percentual, se houver
                         if (deal.savingsPercentage > 0)
                           Text(
                             "-${deal.savingsPercentage.toStringAsFixed(0)}%",
@@ -154,10 +185,11 @@ class SmallDealCardWidget extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

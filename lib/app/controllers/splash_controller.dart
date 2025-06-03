@@ -33,11 +33,11 @@ class SplashController extends GetxController {
       print("[SplashController] AuthService instance obtained. Initialized: ${authService.isServiceInitialized}, LoggedIn: ${authService.isAuthenticated}");
 
       if (authService.isAuthenticated.value) {
-        print("[SplashController] Usuário LOGADO. Navegando para ${AppRoutes.DEALS_LIST}...");
-        Get.offAllNamed(AppRoutes.DEALS_LIST);
+        print("[SplashController] Usuário LOGADO...");
+        Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 1});
       } else {
-        print("[SplashController] Usuário NÃO LOGADO. Navegando para ${AppRoutes.HOME}...");
-        Get.offAllNamed(AppRoutes.HOME);
+        print("[SplashController] Usuário NÃO LOGADO...");
+        Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 0});
       }
       print("[SplashController] Navegação via Get.offAllNamed FOI CHAMADA.");
 

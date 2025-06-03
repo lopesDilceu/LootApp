@@ -1,176 +1,120 @@
-// ignore_for_file: unused_local_variable
-
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart'; // Para seu logo SVG
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/controllers/main_navigation_controller.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
+import 'package:loot_app/app/screens/profile/profile_screen_content.dart';
+import 'package:loot_app/app/screens/settings/settings_screen_content.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
-// ThemeService não é mais necessário aqui para um botão de tema dedicado,
-// mas a tela de Configurações o usará.
+// import 'package:loot_app/app/services/auth_service.dart';
+
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final List<Widget>?
-  customActions; // Ações personalizadas que a tela pode querer adicionar
+  final String title; 
+  final bool isSecondaryPageActive;
+  // O parâmetro showLogoAsHomeButton foi removido, o logo é sempre mostrado
+  // a menos que seja uma página secundária (onde o botão voltar aparece)
 
-  const CommonAppBar({super.key, required this.title, this.customActions});
+  const CommonAppBar({
+    super.key,
+    required this.title,
+    this.isSecondaryPageActive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService.to;
-
+    // final AuthService authService = AuthService.to;
+    final MainNavigationController mainNavController = MainNavigationController.to;
+    
     return AppBar(
-      leading: IconButton(
-        icon: SvgPicture.asset(
-          'images/logos/logo-text-dark.svg', // <<< SEU CAMINHO PARA O LOGO SVG (SEM 'assets/' inicial)
-          width: 32,
-          height: 32,
-          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-          semanticsLabel: 'Logo Loot App',
-        ),
-        tooltip: 'Página Inicial Loot',
-        onPressed: () {
-          print("[CommonAppBar] Botão de Logo pressionado.");
-          // Lógica para ir para a HOME (primeira aba da MainNavigationScreen se estiver usando,
-          // ou AppRoutes.HOME diretamente se não).
-          // Simplificando, sempre vai para AppRoutes.HOME e a Splash/MainNavigation cuida do resto.
-          if (Get.currentRoute != AppRoutes.HOME) {
-            // Evita recarregar a home se já estiver nela
-            // Se estiver usando MainNavigation, o ideal seria:
-            // if (Get.isRegistered<MainNavigationController>()) {
-            //   Get.find<MainNavigationController>().changeTabPage(0);
-            // } else {
-            //   Get.offAllNamed(AppRoutes.HOME);
-            // }
-            // Por ora, simples:
-            Get.offAllNamed(AppRoutes.HOME);
-          }
-        },
-      ),
-      title: Text(title),
-      centerTitle: true,
-      actions:
-          customActions ?? // Se não houver ações customizadas, usa o menu padrão
-          [
-            // O ícone de busca e o campo de texto da AppBar foram removidos desta versão
-            // para focar apenas no menu de usuário/configurações.
-            // Se precisar da busca na AppBar, ela precisaria ser reintegrada com cuidado
-            // para não conflitar com o menu de usuário e o customActions.
-
-            // Menu de Usuário/Login/Configurações
-            GetX<AuthService>(
-              builder: (authCtrl) {
-                if (authCtrl.isLoggedIn) {
-                  // --- USUÁRIO LOGADO ---
-                  return PopupMenuButton<String>(
-                    tooltip: "Opções do Usuário",
-                    icon: const Icon(Icons.account_circle),
-                    offset: const Offset(0, kToolbarHeight - 10),
-                    onSelected: (value) {
-                      if (value == 'deals_list') {
-                        // Se estiver usando MainNavigationScreen:
-                        // if (Get.isRegistered<MainNavigationController>()) {
-                        //   Get.find<MainNavigationController>().changeTabPage(1); // Supondo que Deals é aba 1
-                        // } else
-                        if (Get.currentRoute != AppRoutes.DEALS_LIST) {
-                          Get.toNamed(AppRoutes.DEALS_LIST);
-                        }
-                      } else if (value == 'profile') {
-                        if (Get.currentRoute != AppRoutes.PROFILE) {
-                          Get.toNamed(AppRoutes.PROFILE);
-                        }
-                      } else if (value == 'settings') {
-                        // <<< OPÇÃO DE CONFIGURAÇÕES
-                        Get.toNamed(AppRoutes.SETTINGS);
-                      } else if (value == 'logout') {
-                        authCtrl.logout();
-                      }
-                    },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'deals_list',
-                        child: Text('Minhas Promoções'),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'profile',
-                        child: Text(
-                          'Perfil (${authCtrl.currentUser.value?.firstName ?? 'Usuário'})',
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<String>(
-                        // <<< ITEM "CONFIGURAÇÕES"
-                        value: 'settings',
-                        child: ListTile(
-                          leading: Icon(Icons.settings_outlined),
-                          title: Text('Configurações'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<String>(
-                        value: 'logout',
-                        child: Text('Sair'),
-                      ),
-                    ],
-                  );
-                } else {
-                  // --- USUÁRIO DESLOGADO ---
-                  final String currentRoute = Get.currentRoute;
-                  if (currentRoute != AppRoutes.LOGIN &&
-                      currentRoute != AppRoutes.REGISTER) {
-                    return PopupMenuButton<String>(
-                      tooltip: "Opções",
-                      icon: const Icon(
-                        Icons.account_circle_outlined,
-                      ), // Ícone para deslogado
-                      offset: const Offset(0, kToolbarHeight - 10),
-                      onSelected: (value) {
-                        if (value == 'login') {
-                          Get.toNamed(AppRoutes.LOGIN);
-                        } else if (value == 'settings') {
-                          // <<< OPÇÃO DE CONFIGURAÇÕES
-                          Get.toNamed(AppRoutes.SETTINGS);
-                        }
-                        // Adicionar 'register' se quiser essa opção no menu
-                        // else if (value == 'register') { Get.toNamed(AppRoutes.REGISTER); }
-                      },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<String>>[
-                            const PopupMenuItem<String>(
-                              value: 'login',
-                              child: ListTile(
-                                leading: Icon(Icons.login),
-                                title: Text('Fazer Login'),
-                              ),
-                            ),
-                            // Opcional: Adicionar Cadastro aqui se desejar
-                            // const PopupMenuItem<String>(
-                            //   value: 'register',
-                            //   child: ListTile(leading: Icon(Icons.person_add_alt_1_outlined), title: Text('Cadastrar-se')),
-                            // ),
-                            const PopupMenuDivider(),
-                            const PopupMenuItem<String>(
-                              // <<< ITEM "CONFIGURAÇÕES"
-                              value: 'settings',
-                              child: ListTile(
-                                leading: Icon(Icons.settings_outlined),
-                                title: Text('Configurações'),
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ],
-                    );
-                  }
-                  return const SizedBox.shrink(); // Não mostra nada se já estiver em Login/Cadastro
-                }
+      leading: isSecondaryPageActive
+          ? IconButton( // Botão de voltar para páginas secundárias (Perfil, Configurações)
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              tooltip: "Voltar",
+              onPressed: () => mainNavController.closeSecondaryPage(),
+            )
+          : IconButton( // Logo que leva para a aba Home
+              icon: SvgPicture.asset(
+                'images/logos/logo-text-dark.svg', // Caminho para seu logo SVG
+                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                width: 32, height: 32,
+                semanticsLabel: "Logo Loot App",
+              ),
+              tooltip: 'Página Inicial',
+              onPressed: () {
+                mainNavController.changeTabPage(0); // Vai para aba Home (índice 0)
               },
             ),
-            const SizedBox(width: 8),
+      
+      title: Text(title), // Título é sempre o texto passado
+      centerTitle: true, 
+
+      actions: <Widget>[
+            // Ações customizadas (como o botão de filtro) podem ser adicionadas aqui pela MainNavigationScreen
+            // se necessário, ou diretamente se a CommonAppBar precisar ser mais inteligente sobre a aba atual.
+            // Por ora, apenas o menu de usuário/login/configurações.
+
+            GetX<AuthService>(
+              builder: (authCtrl) {
+                List<PopupMenuEntry<String>> items = [];
+                if (authCtrl.isLoggedIn) {
+                  items.addAll([
+                    const PopupMenuItem<String>(value: 'deals_list_tab', child: Text('Promoções')),
+                    PopupMenuItem<String>(value: 'profile', child: Text('Perfil (${authCtrl.currentUser.value?.firstName ?? 'Usuário'})')),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<String>(value: 'settings', child: ListTile(leading: Icon(Icons.settings_outlined), title: Text('Configurações'))),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<String>(value: 'logout', child: Text('Sair')),
+                  ]);
+                } else {
+                   items.addAll([
+                     const PopupMenuItem<String>(value: 'login', child: ListTile(leading: Icon(Icons.login), title: Text('Fazer Login'))),
+                     const PopupMenuDivider(),
+                     const PopupMenuItem<String>(value: 'settings', child: ListTile(leading: Icon(Icons.settings_outlined), title: Text('Configurações'))),
+                   ]);
+                }
+                
+                final String currentRouteName = Get.currentRoute;
+                bool onAuthScreenItself = currentRouteName == AppRoutes.LOGIN || currentRouteName == AppRoutes.REGISTER;
+                
+                if (onAuthScreenItself || (isSecondaryPageActive && !authCtrl.isLoggedIn && _getSecondaryPageType(mainNavController) != SecondaryPageType.settings) ) {
+                    return const SizedBox.shrink();
+                }
+                if (_getSecondaryPageType(mainNavController) == SecondaryPageType.settings && !authCtrl.isLoggedIn){
+                   items = [const PopupMenuItem<String>(value: 'settings', child: ListTile(leading: Icon(Icons.settings_outlined), title: Text('Configurações')))];
+                }
+
+                return PopupMenuButton<String>(
+                  tooltip: authCtrl.isLoggedIn ? "Opções do Usuário" : "Opções",
+                  icon: Icon(authCtrl.isLoggedIn ? Icons.account_circle : Icons.account_circle_outlined),
+                  offset: const Offset(0, kToolbarHeight - 10),
+                  onSelected: (value) {
+                    if (value == 'deals_list_tab') mainNavController.changeTabPage(1);
+                    else if (value == 'profile') mainNavController.navigateToProfilePage();
+                    else if (value == 'settings') mainNavController.navigateToSettingsPage();
+                    else if (value == 'logout') authCtrl.logout();
+                    else if (value == 'login') Get.toNamed(AppRoutes.LOGIN);
+                  },
+                  itemBuilder: (BuildContext context) => items,
+                );
+              },
+            ),
+            const SizedBox(width: 8), // Padding final
           ],
     );
   }
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  SecondaryPageType _getSecondaryPageType(MainNavigationController mainNavController) {
+    if (mainNavController.secondaryPageContent.value is ProfileScreenContent) {
+      return SecondaryPageType.profile;
+    } else if (mainNavController.secondaryPageContent.value is SettingsScreenContent) {
+      return SecondaryPageType.settings;
+    }
+    return SecondaryPageType.none;
+  }
 }
+
+enum SecondaryPageType { none, profile, settings }
