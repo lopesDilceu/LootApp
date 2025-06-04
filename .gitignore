@@ -117,7 +117,6 @@ windows/.vs/ # Arquivos do Visual Studio
 # Arquivos gerados pelo MSBuild
 Debug/
 Release/
-Profile/
 *.obj
 *.pdb
 *.user

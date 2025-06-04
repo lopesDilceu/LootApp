@@ -23,7 +23,7 @@ class LoginScreen extends GetView<LoginController> {
             crossAxisAlignment: CrossAxisAlignment.stretch, // Estica os botões
             children: <Widget>[
               SvgPicture.asset(
-                'images/logos/logo-binoculars-text-light.svg',
+                'assets/images/logos/logo-binoculars-text-light.svg',
                 width: 128,
                 height: 128,
                 colorFilter: null,

@@ -35,7 +35,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           : IconButton( // Logo que leva para a aba Home
               icon: SvgPicture.asset(
-                'images/logos/logo-text-dark.svg', // Caminho para seu logo SVG
+                'assets/images/logos/logo-text-dark.svg', // Caminho para seu logo SVG
                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 width: 32, height: 32,
                 semanticsLabel: "Logo Loot App",

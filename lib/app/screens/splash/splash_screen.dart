@@ -29,7 +29,7 @@ class SplashScreen extends GetView<SplashController> {
                   width: logoSize,
                   height: logoSize,
                   child: SvgPicture.asset(
-                    'images/logos/logo-binoculars-text-light.svg', // <<< CAMINHO PARA SEU ARQUIVO SVG
+                    'assets/images/logos/logo-binoculars-text-light.svg', // <<< CAMINHO PARA SEU ARQUIVO SVG
                     width: logoSize,
                     height: logoSize,
                     semanticsLabel: 'Logo do Loot App',
