@@ -77,10 +77,6 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width - 32,
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                ),
                 child: Center(
                   child: proxiedImageUrlToShow.isNotEmpty
                       ? Image.network(

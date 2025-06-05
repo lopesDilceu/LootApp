@@ -27,7 +27,7 @@ class MainNavigationController extends GetxController {
   static MainNavigationController get to => Get.find();
 
   var selectedIndex = 0.obs;
-  final RxString appBarTitle = "Loot - Home".obs;
+  final RxString appBarTitle = "LooT".obs;
   final Rx<Widget?> secondaryPageContent = Rxn<Widget>();
   final RxBool showBottomNavBar = true.obs;
 
@@ -37,7 +37,7 @@ class MainNavigationController extends GetxController {
     const MonitoringScreenContent(),
   ];
 
-  final List<String> _tabTitles = const ["Loot - Home", "Promoções", "Monitoramento"];
+  final List<String> _tabTitles = const ["LooT", "Promoções", "Monitoramento"];
   String? _secondaryPageTitle;
 
   @override

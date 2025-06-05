@@ -50,12 +50,6 @@ class SplashScreen extends GetView<SplashController> {
               ],
             ),
             const SizedBox(height: 30),
-            Text(
-              "Carregando LooT...",
-              style: Get.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ],
         ),
       ),

@@ -14,9 +14,17 @@ class SmallDealCardWidget extends StatelessWidget {
 Widget build(BuildContext context) {
   final CurrencyService currencyService = CurrencyService.to;
 
+  String imageUrlToUse = deal.thumb; // Fallback para a thumbnail
+    if (deal.steamAppID != null && deal.steamAppID!.isNotEmpty) {
+      imageUrlToUse = 'https://steamcdn-a.akamaihd.net/steam/apps/${deal.steamAppID}/header.jpg';
+      print("[SmallDealCard] Usando URL da Steam (header.jpg): $imageUrlToUse");
+    } else {
+      print("[SmallDealCard] Sem steamAppID, usando thumbnail: $imageUrlToUse");
+    }
+
   String proxiedImageUrl = '';
   if (deal.thumb.isNotEmpty) {
-    String encodedImageUrl = Uri.encodeComponent(deal.thumb);
+    String encodedImageUrl = Uri.encodeComponent(imageUrlToUse);
     proxiedImageUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl";
     
   }
@@ -37,6 +45,8 @@ Widget build(BuildContext context) {
         print("[CardWidget] Navegando para detalhes: ${deal.title}");
         MainNavigationController.to.navigateToDealDetailPage(deal);
       },
+
+      
       child: SizedBox(
         width: cardWidth,
         height: cardHeight,
