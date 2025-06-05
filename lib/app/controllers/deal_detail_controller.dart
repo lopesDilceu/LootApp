@@ -71,44 +71,58 @@ class DealDetailController extends GetxController {
   Future<void> _fetchGameScreenshots() async {
     if (deal.value == null) return;
     isLoadingImages.value = true;
-    gameImageUrls.clear(); // Limpa para nova busca
+    // Limpa a lista antes de adicionar novas imagens para evitar duplicatas em re-chamadas
+    final List<String> fetchedImages = []; 
 
-    int? rawgGameId;
-    // Tenta encontrar o ID do jogo na RAWG
+    // 1. Tenta adicionar a header.jpg da Steam primeiro, se disponível
     if (deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
-      // Se sua RawgApiProvider tiver um método para buscar por steamAppID:
+      final steamHeaderUrl = 'https://steamcdn-a.akamaihd.net/steam/apps/${deal.value!.steamAppID}/header.jpg';
+      fetchedImages.add(steamHeaderUrl);
+      print("[DealDetailController] Adicionada Steam header.jpg: $steamHeaderUrl");
+    }
+
+    // 2. Busca screenshots da RAWG
+    int? rawgGameId;
+    if (deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
       rawgGameId = await _rawgApiProvider.findRawgGameIdBySteamId(deal.value!.steamAppID!);
     }
-    if (rawgGameId == null) { // Fallback para buscar por título
+    if (rawgGameId == null) { 
       rawgGameId = await _rawgApiProvider.findRawgGameIdByTitle(deal.value!.title);
     }
     
     if (rawgGameId != null) {
       final screenshots = await _rawgApiProvider.getGameScreenshots(rawgGameId);
       if (screenshots.isNotEmpty) {
-        gameImageUrls.assignAll(screenshots);
-        print("[DealDetailController] ${screenshots.length} screenshots da RAWG carregadas.");
+        for (var screenshotUrl in screenshots) {
+          // Adiciona apenas se não for uma duplicata da header.jpg (pouco provável, mas seguro)
+          if (!fetchedImages.contains(screenshotUrl)) {
+            fetchedImages.add(screenshotUrl);
+          }
+        }
+        print("[DealDetailController] ${screenshots.length} screenshots da RAWG adicionadas.");
       }
     }
     
-    // Fallback se não encontrar screenshots da RAWG, mas tiver steamAppID para header
-    if (gameImageUrls.isEmpty && deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
-        gameImageUrls.add('https://steamcdn-a.akamaihd.net/steam/apps/${deal.value!.steamAppID}/header.jpg');
-    }
-    // Fallback final para a thumb se tudo mais falhar
-    if (gameImageUrls.isEmpty && deal.value!.thumb.isNotEmpty){
-        gameImageUrls.add(deal.value!.thumb);
-    }
-    if (gameImageUrls.isEmpty) {
-      print("[DealDetailController] Nenhuma imagem encontrada para o carrossel.");
+    // 3. Fallback final para a thumb se a lista ainda estiver vazia
+    if (fetchedImages.isEmpty && deal.value!.thumb.isNotEmpty){
+        fetchedImages.add(deal.value!.thumb);
+        print("[DealDetailController] Usando thumb como fallback para o carrossel.");
     }
 
+    if (fetchedImages.isEmpty) {
+      print("[DealDetailController] Nenhuma imagem encontrada para o carrossel.");
+    }
+    
+    gameImageUrls.assignAll(fetchedImages); // Atualiza a lista reativa de uma vez
     isLoadingImages.value = false;
   }
 
   // Getter para a URL da imagem (já inclui o proxy)
-  String get displayImageUrl { // Esta pode ser a imagem principal ANTES do carrossel
-    if (deal.value == null) return '';
+  String get displayImageUrl { 
+    if (gameImageUrls.isNotEmpty) return gameImageUrls.first; // Usa a primeira do carrossel (que será a header.jpg se existir)
+    
+    // Fallback se o carrossel estiver vazio (não deveria acontecer com a lógica em _fetchGameScreenshots)
+    if (deal.value == null || deal.value!.thumb.isEmpty) return '';
     final currentDeal = deal.value!;
     String imageUrlToUse = currentDeal.thumb;
     if (currentDeal.steamAppID != null && currentDeal.steamAppID!.isNotEmpty) {
