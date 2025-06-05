@@ -1,80 +1,122 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart'; // Para ApiConstants.imageProxyUrlPrefix
+import 'package:loot_app/app/data/providers/rawg_api_provider.dart';
+import 'package:loot_app/app/services/user_preferences_service.dart';
 // UserPreferencesService e CurrencyService serão acessados pela UI (DealDetailScreenContent)
 // import 'package:loot_app/app/services/user_preferences_service.dart';
 // import 'package:loot_app/app/services/currency_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DealDetailController extends GetxController {
-  final Rxn<DealModel> deal = Rxn<DealModel>(); // O deal da CheapShark
+  final Rxn<DealModel> deal = Rxn<DealModel>();
+  final RawgApiProvider _rawgApiProvider = Get.find<RawgApiProvider>(); // Injete/Encontre
+  final UserPreferencesService _prefsService = UserPreferencesService.to;
 
-  // O listener para mudança de país não é mais necessário aqui se a UI
-  // (DealDetailScreenContent) já observa o UserPreferencesService e o CurrencyService
-  // para reconstruir e chamar CurrencyService.getFormattedPrice.
-  // Worker? _countryChangeListener;
+  // Para o carrossel de imagens da RAWG
+  final RxList<String> gameImageUrls = <String>[].obs;
+  final RxBool isLoadingImages = false.obs;
+  late PageController imageCarouselController;
+  var currentImageIndex = 0.obs; // Para o indicador de página
+
+  Worker? _countryChangeListener;
 
   @override
   void onInit() {
     super.onInit();
-    print("[DealDetailController] onInit. Aguardando chamada de loadDealDetails.");
-    // A lógica de buscar Get.arguments foi removida daqui.
+    print("[DealDetailController] onInit.");
+    imageCarouselController = PageController(viewportFraction: 0.9); // Para o carrossel
   }
-
+  
   @override
   void onClose() {
-    print("[DealDetailController] onClose. Limpando deal.");
-    clearDealDetails(); // Garante limpeza ao fechar
+    print("[DealDetailController] onClose. Limpando deal e controller do carrossel.");
+    imageCarouselController.dispose();
+    _countryChangeListener?.dispose();
+    clearDealDetails();
     super.onClose();
   }
 
-  // Método chamado pelo MainNavigationController para carregar/atualizar o deal
-  void loadDealDetails(DealModel newDeal) {
+  Future<void> loadDealDetails(DealModel newDeal) async {
     print("[DealDetailController] loadDealDetails chamado com: ${newDeal.title}");
-    deal.value = newDeal; // Define o deal principal que a UI vai observar
+    deal.value = newDeal;
+    gameImageUrls.clear(); // Limpa imagens anteriores
+    currentImageIndex.value = 0; // Reseta o índice do carrossel
 
-    // Não há mais busca de preço regional da GG.deals aqui.
-    // A DealDetailScreenContent usará o CurrencyService para formatar os preços
-    // do deal.value (que são em USD) com base na preferência do usuário.
-    // A reatividade à mudança de moeda acontecerá na UI (DealDetailScreenContent)
-    // que observa o UserPreferencesService e o CurrencyService.
-    print("[DealDetailController] Deal carregado: ${deal.value?.title}");
+    _countryChangeListener?.dispose();
+    _countryChangeListener = ever(_prefsService.selectedCurrency, (_) { // Ou selectedCountryCode se preferir
+      print("[DealDetailController] Moeda/País mudou. A UI de preço deve se atualizar.");
+      // A UI de preço já observa CurrencyService e UserPreferencesService.
+      // Se precisar buscar algo específico aqui (como preços da GG.deals), faça.
+    });
+
+    if (deal.value != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isClosed) return;
+        _fetchGameScreenshots(); // Busca imagens da RAWG
+      });
+    }
   }
   
   // Método para limpar o deal atual (chamado por MainNavigationController ao fechar a página)
   void clearDealDetails() {
-    print("[DealDetailController] Limpando detalhes do deal.");
     deal.value = null;
-    // _countryChangeListener?.dispose(); // Removido
+    gameImageUrls.clear();
+    currentImageIndex.value = 0;
+    _countryChangeListener?.dispose();
+    _countryChangeListener = null;
+  }
+
+  Future<void> _fetchGameScreenshots() async {
+    if (deal.value == null) return;
+    isLoadingImages.value = true;
+    gameImageUrls.clear(); // Limpa para nova busca
+
+    int? rawgGameId;
+    // Tenta encontrar o ID do jogo na RAWG
+    if (deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
+      // Se sua RawgApiProvider tiver um método para buscar por steamAppID:
+      rawgGameId = await _rawgApiProvider.findRawgGameIdBySteamId(deal.value!.steamAppID!);
+    }
+    if (rawgGameId == null) { // Fallback para buscar por título
+      rawgGameId = await _rawgApiProvider.findRawgGameIdByTitle(deal.value!.title);
+    }
+    
+    if (rawgGameId != null) {
+      final screenshots = await _rawgApiProvider.getGameScreenshots(rawgGameId);
+      if (screenshots.isNotEmpty) {
+        gameImageUrls.assignAll(screenshots);
+        print("[DealDetailController] ${screenshots.length} screenshots da RAWG carregadas.");
+      }
+    }
+    
+    // Fallback se não encontrar screenshots da RAWG, mas tiver steamAppID para header
+    if (gameImageUrls.isEmpty && deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
+        gameImageUrls.add('https://steamcdn-a.akamaihd.net/steam/apps/${deal.value!.steamAppID}/header.jpg');
+    }
+    // Fallback final para a thumb se tudo mais falhar
+    if (gameImageUrls.isEmpty && deal.value!.thumb.isNotEmpty){
+        gameImageUrls.add(deal.value!.thumb);
+    }
+    if (gameImageUrls.isEmpty) {
+      print("[DealDetailController] Nenhuma imagem encontrada para o carrossel.");
+    }
+
+    isLoadingImages.value = false;
   }
 
   // Getter para a URL da imagem (já inclui o proxy)
-  String get displayImageUrl {
-    if (deal.value == null || deal.value!.thumb.isEmpty) { // Verifica se deal.value e thumb são válidos
-        print("[DealDetailController] displayImageUrl: deal ou thumb é nulo/vazio.");
-        return ''; // Retorna string vazia se não houver deal ou thumb
-    }
-
+  String get displayImageUrl { // Esta pode ser a imagem principal ANTES do carrossel
+    if (deal.value == null) return '';
     final currentDeal = deal.value!;
-    String imageUrlToUse = currentDeal.thumb; // Começa com a thumbnail
-
-    // Tenta usar uma imagem maior da Steam se steamAppID estiver disponível
+    String imageUrlToUse = currentDeal.thumb;
     if (currentDeal.steamAppID != null && currentDeal.steamAppID!.isNotEmpty) {
       imageUrlToUse = 'https://steamcdn-a.akamaihd.net/steam/apps/${currentDeal.steamAppID}/header.jpg';
-      print("[DealDetailController] displayImageUrl: Usando URL da Steam (header.jpg): $imageUrlToUse");
-    } else {
-      print("[DealDetailController] displayImageUrl: Sem steamAppID, usando thumbnail: $imageUrlToUse");
     }
-    
-    if (imageUrlToUse.isEmpty) { // Segunda checagem para imageUrlToUse
-        print("[DealDetailController] displayImageUrl: imageUrlToUse final está vazia.");
-        return '';
-    }
-
+    if (imageUrlToUse.isEmpty) return '';
     String encodedImageUrl = Uri.encodeComponent(imageUrlToUse);
-    final proxiedUrl = "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl"; 
-    print("[DealDetailController] displayImageUrl: URL final do proxy: $proxiedUrl");
-    return proxiedUrl;
+    return "${ApiConstants.imageProxyUrlPrefix}$encodedImageUrl"; 
   }
 
   // Método para abrir o link da promoção

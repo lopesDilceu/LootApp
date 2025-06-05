@@ -8,6 +8,7 @@ import 'package:loot_app/app/controllers/profile_controller.dart';
 import 'package:loot_app/app/controllers/settings_controller.dart'; // Importe
 import 'package:loot_app/app/data/providers/auth_api_provider.dart';
 import 'package:loot_app/app/data/providers/deals_api_provider.dart';
+import 'package:loot_app/app/data/providers/rawg_api_provider.dart';
 
 class MainNavigationBinding extends Bindings {
   @override
@@ -16,6 +17,8 @@ class MainNavigationBinding extends Bindings {
 
     Get.lazyPut<AuthApiProvider>(() => AuthApiProvider(), fenix: true); // << AuthApiProvider
     Get.lazyPut<DealsApiProvider>(() => DealsApiProvider(), fenix: true);
+    Get.lazyPut<RawgApiProvider>(() => RawgApiProvider(), fenix: true); // Registra RawgApiProvider
+
 
     Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
     Get.lazyPut<DealsController>(() => DealsController(), fenix: true);

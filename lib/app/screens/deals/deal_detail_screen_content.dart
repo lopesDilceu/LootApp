@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/controllers/deal_detail_controller.dart';
 import 'package:loot_app/app/services/currency_service.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 // import 'package:loot_app/app/widgets/common/app_bar.dart';
 
 class DealDetailScreenContent extends GetView<DealDetailController> {
@@ -46,95 +47,128 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    final CurrencyService currencyService =
-        CurrencyService.to; // No topo do build ou dentro do Obx
+    final CurrencyService currencyService = CurrencyService.to;
 
-    return Obx(() {
-        final currentDeal = controller.deal.value;
-        if (currentDeal == null) {
-          return const Center(
-            child: Text("Detalhes da promoção não disponíveis."),
-          );
-        }
+    return Obx(() { 
+      final currentDeal = controller.deal.value;
+      if (currentDeal == null) {
+        return const Center(child: Text("Carregando detalhes..."));
+      }
 
-        final String proxiedImageUrlToShow =
-            controller.displayImageUrl; // Já usa o proxy
-        print(
-          "[DealDetailScreen] URL da imagem para exibir: $proxiedImageUrlToShow",
-        );
+      // A imagem principal (controller.displayImageUrl) pode ser diferente do carrossel
+      // ou ser a primeira imagem do carrossel. Aqui, está separada.
+      final String mainProxiedImageUrl = controller.displayImageUrl;
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Imagem Principal (opcional, se quiser uma imagem de destaque antes do carrossel)
+            // Se não quiser, pode remover este Container e ir direto para o carrossel.
+            if (mainProxiedImageUrl.isNotEmpty && controller.gameImageUrls.isEmpty && !controller.isLoadingImages.value)
               Container(
-                // Container da Imagem Principal
-                height: 215,
-                width: 460,
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width - 32,
-                ),
-                child: Center(
-                  child: proxiedImageUrlToShow.isNotEmpty
-                      ? Image.network(
-                          proxiedImageUrlToShow,
-                          fit: BoxFit.contain,
-                          errorBuilder: (ctx, err, st) {
-                            print(
-                              "[DealDetailScreen] Erro ao carregar imagem principal via proxy: $err - URL: $proxiedImageUrlToShow",
-                            );
-                            if (currentDeal.thumb.isNotEmpty) {
-                              String encodedThumbUrl = Uri.encodeComponent(
-                                currentDeal.thumb,
-                              );
-                              // VVVVVV USA A CONSTANTE AQUI VVVVVV
-                              String proxiedThumbUrl =
-                                  "${ApiConstants.imageProxyUrlPrefix}$encodedThumbUrl";
-                              print(
-                                "[DealDetailScreen] Fallback para thumbnail: $proxiedThumbUrl",
-                              );
-                              return Image.network(
-                                proxiedThumbUrl,
-                                height: 100,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => const Icon(
-                                  Icons.broken_image_outlined,
-                                  size: 70,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            }
-                            return const Icon(
-                              Icons.broken_image_outlined,
-                              size: 70,
-                              color: Colors.grey,
-                            );
-                          },
-                          loadingBuilder: (ctx, child, progress) {
-                            if (progress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: progress.expectedTotalBytes != null
-                                    ? progress.cumulativeBytesLoaded /
-                                          progress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
-                        )
-                      : const Icon(
-                          Icons.image_not_supported_outlined,
-                          size: 70,
-                          color: Colors.grey,
-                        ),
-                ),
+                height: 215, width: 460,
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
+                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+                child: Center(child: Image.network(mainProxiedImageUrl, fit: BoxFit.contain, /* errorBuilder, loadingBuilder */)),
               ),
-              // ... (resto da sua UI de detalhes como antes) ...
-              const SizedBox(height: 20),
-              Text(
+            
+            // Carrossel de Imagens da RAWG
+            Obx(() {
+              if (controller.isLoadingImages.value) {
+                return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+              }
+              if (controller.gameImageUrls.isEmpty && !mainProxiedImageUrl.isNotEmpty) { // Se não há principal nem de carrossel
+                return Container(height: 200, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)), child: const Center(child: Icon(Icons.image_not_supported_outlined, size: 70, color: Colors.grey)));
+              }
+              if (controller.gameImageUrls.isEmpty && mainProxiedImageUrl.isNotEmpty) { // Se só tem a principal e não screenshots
+                 return const SizedBox.shrink(); // Já mostrou a principal acima
+              }
+              // Mostra o carrossel
+              return Column(
+                children: [
+                  SizedBox(
+                    height: 220, // Altura do carrossel
+                    child: PageView.builder(
+                      controller: controller.imageCarouselController,
+                      itemCount: controller.gameImageUrls.length,
+                      onPageChanged: (index) {
+                        controller.currentImageIndex.value = index;
+                      },
+                      // itemBuilder: (context, index) {
+                      //   String originalImageUrl = controller.gameImageUrls[index];
+                      //   String proxiedScreenshotUrl = '';
+                      //   if (originalImageUrl.isNotEmpty) {
+                      //     proxiedScreenshotUrl = "${ApiConstants.imageProxyUrlPrefix}${Uri.encodeComponent(originalImageUrl)}";
+                      //   }
+                      //   return Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      //     child: ClipRRect(
+                      //       borderRadius: BorderRadius.circular(8.0),
+                      //       child: proxiedScreenshotUrl.isNotEmpty 
+                      //         ? Image.network(
+                      //             proxiedScreenshotUrl, 
+                      //             fit: BoxFit.cover,
+                      //             errorBuilder: (c,e,s) => const Icon(Icons.broken_image, color: Colors.grey),
+                      //             loadingBuilder: (c,child,progress) => progress == null ? child : const Center(child: CircularProgressIndicator()),
+                      //           )
+                      //         : const Icon(Icons.image_not_supported, color: Colors.grey),
+                      //     ),
+                      //   );
+                      // },
+                      itemBuilder: (context, index) {
+                        String originalImageUrlFromCarousel = controller.gameImageUrls[index];
+                        
+                        // VVVVVV ALTERAÇÃO PARA TESTE SEM PROXY VVVVVV
+                        // String urlParaExibirNoCarrossel = "${ApiConstants.imageProxyUrlPrefix}${Uri.encodeComponent(originalImageUrlFromCarousel)}";
+                        String urlParaExibirNoCarrossel = originalImageUrlFromCarousel; // USA A URL ORIGINAL DIRETAMENTE
+                        print("[DealDetailScreen_Carousel] Testando URL direta (sem proxy): $urlParaExibirNoCarrossel");
+                        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: urlParaExibirNoCarrossel.isNotEmpty 
+                              ? Image.network(
+                                  urlParaExibirNoCarrossel, 
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (c,e,s) {
+                                    print("[DealDetailScreen_Carousel] Erro ao carregar imagem DIRETA: $e - URL: $urlParaExibirNoCarrossel");
+                                    return const Icon(Icons.broken_image, color: Colors.grey, size: 50);
+                                  },
+                                  loadingBuilder: (c,child,progress) => progress == null ? child : const Center(child: CircularProgressIndicator()),
+                                )
+                              : const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (controller.gameImageUrls.length > 1) ...[ // Só mostra indicador se mais de 1 imagem
+                    const SizedBox(height: 10),
+                    SmoothPageIndicator(
+                      controller: controller.imageCarouselController,
+                      count: controller.gameImageUrls.length,
+                      effect: WormEffect(
+                        dotHeight: 8, dotWidth: 8,
+                        activeDotColor: Theme.of(context).colorScheme.primary,
+                        dotColor: Colors.grey.shade300,
+                      ),
+                       onDotClicked: (index){
+                          controller.imageCarouselController.animateToPage(index, duration: const Duration(milliseconds: 500), curve: Curves.ease);
+                       }
+                    ),
+                  ]
+                ],
+              );
+            }),
+
+            const SizedBox(height: 20),
+Text(
                 currentDeal.title,
                 style: Get.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -205,10 +239,9 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
                 ),
                 onPressed: controller.launchDealUrl,
               ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      });
+          ],
+        ),
+      );
+    });
   }
 }
