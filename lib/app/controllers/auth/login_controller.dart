@@ -1,6 +1,7 @@
 // lib/app/controllers/login_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/controllers/main_navigation_controller.dart';
 import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
 import 'package:loot_app/app/data/providers/auth_api_provider.dart'; // Seu provider da API
 import 'package:loot_app/app/routes/app_routes.dart';
@@ -100,7 +101,7 @@ class LoginController extends GetxController {
             colorText: Colors.white,
           );
           // Navega para a tela principal LOGADA (ex: DealsListScreen)
-          Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 1});
+          Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 0});
         } else {
           print(
             "[LoginController] Login FALHOU: _authApiProvider.login() retornou null.",
@@ -127,8 +128,13 @@ class LoginController extends GetxController {
     }
   }
 
-  // Método para navegar para a tela de cadastro
-  void navigateToRegister() {
-    Get.toNamed(AppRoutes.REGISTER);
+    void navigateToRegisterPage() { // << MÉTODO ADICIONADO/CORRIGIDO
+    print("[LoginController] Navegando para RegisterPageContent via MainNavigationController.");
+    if (Get.isRegistered<MainNavigationController>()) {
+      MainNavigationController.to.navigateToRegisterPage();
+    } else {
+      print("[LoginController] ERRO: MainNavigationController não encontrado.");
+    }
   }
+
 }

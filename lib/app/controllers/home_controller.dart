@@ -86,10 +86,7 @@ class HomeController extends GetxController {
     }
   }
 
-  void navigateToLogin() {
-    print("[HomeController] navigateToLogin chamado");
-    Get.toNamed(AppRoutes.LOGIN);
-  }
+
 
   void navigateToDealsList() {
     print("[HomeController] navigateToDealsList chamado (usuário logado quer ver todas as promoções)");

@@ -1,6 +1,7 @@
 // lib/app/controllers/register_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loot_app/app/controllers/main_navigation_controller.dart';
 import 'package:loot_app/app/data/models/auth/auth_response_model.dart';
 import 'package:loot_app/app/data/models/user_model.dart'; // Seu User model
 import 'package:loot_app/app/data/providers/auth_api_provider.dart';
@@ -120,6 +121,15 @@ class RegisterController extends GetxController {
       } finally {
         isLoading.value = false;
       }
+    }
+  }
+
+  void navigateToLoginPage() {
+    print("[RegisterController] Navegando para LoginPageContent via MainNavigationController.");
+    if (Get.isRegistered<MainNavigationController>()) {
+      MainNavigationController.to.navigateToLoginPage();
+    } else {
+      print("[RegisterController] ERRO: MainNavigationController não encontrado.");
     }
   }
 }

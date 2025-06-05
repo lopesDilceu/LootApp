@@ -112,24 +112,14 @@ class HomeScreenContent extends GetView<HomeController> {
               );
             }),
             const SizedBox(height: 30), // Ajuste o espaçamento
-            // Botão de Ação (Login/Cadastro ou Ver Todas as Promoções)
             Padding(
               // Padding para o botão
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Obx(() {
-                if (controller.authService.isLoggedIn) {
-                  return ElevatedButton(
+              child:  ElevatedButton(
                     onPressed: () =>
                         MainNavigationController.to.changeTabPage(1),
-                    child: const Text('Ver Todas as Promoções'),
-                  );
-                } else {
-                  return ElevatedButton(
-                    onPressed: controller.navigateToLogin,
-                    child: const Text('Acessar / Cadastrar para Mais'),
-                  );
-                }
-              }),
+                    child: const Text('Ver Tudo'),
+                  ),
             ),
           ],
         ),

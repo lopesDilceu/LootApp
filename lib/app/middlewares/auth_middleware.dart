@@ -19,10 +19,9 @@ class AuthMiddleware extends GetMiddleware {
     print("[AuthMiddleware] Usuário está logado (isLoggedIn): ${authService.isLoggedIn}"); // Ou authService.isAuthenticated.value
 
     if (!authService.isLoggedIn) { // Ou !authService.isAuthenticated.value
-      print("[AuthMiddleware] Usuário NÃO LOGADO. Redirecionando para ${AppRoutes.LOGIN} a partir da rota $route.");
       // Opcional: Salvar a rota que o usuário tentou acessar para redirecionar de volta após o login
       // Ex: Get.find<SomeStorageService>().intendedRoute = route;
-      return const RouteSettings(name: AppRoutes.LOGIN);
+      return const RouteSettings(name: AppRoutes.MAIN_NAVIGATION);
     }
     
     print("[AuthMiddleware] Usuário LOGADO. Permitindo acesso à rota $route.");

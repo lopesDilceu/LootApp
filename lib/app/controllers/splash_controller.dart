@@ -44,7 +44,7 @@ class SplashController extends GetxController {
     } catch (e, stackTrace) {
       print("[SplashController] ERRO CRÍTICO em _checkAuthStatusAndNavigate: $e");
       print("[SplashController] StackTrace do erro: $stackTrace");
-      Get.offAllNamed(AppRoutes.LOGIN); // Fallback em caso de erro crítico
+      Get.offAllNamed(AppRoutes.MAIN_NAVIGATION); // Fallback em caso de erro crítico
     }
   }
 }
