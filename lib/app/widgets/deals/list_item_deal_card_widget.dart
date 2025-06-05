@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
+import 'package:loot_app/app/controllers/main_navigation_controller.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
-import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/currency_service.dart';
 
 class ListItemDealCardWidget extends StatelessWidget {
@@ -40,10 +40,7 @@ class ListItemDealCardWidget extends StatelessWidget {
             "[CardWidget] Deal ID: ${deal.dealID}, Deal Thumb: ${deal.thumb}",
           );
 
-          Get.toNamed(
-            AppRoutes.DEAL_DETAIL,
-            arguments: deal, // Passa o objeto 'deal'
-          );
+          MainNavigationController.to.navigateToDealDetailPage(deal);
         },
         child: Padding(
           padding: const EdgeInsets.all(10.0),

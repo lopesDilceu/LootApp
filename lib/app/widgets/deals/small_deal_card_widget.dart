@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
+import 'package:loot_app/app/controllers/main_navigation_controller.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
-import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/currency_service.dart';
 
 class SmallDealCardWidget extends StatelessWidget {
@@ -35,7 +35,7 @@ Widget build(BuildContext context) {
     child: InkWell(
       onTap: () {
         print("[CardWidget] Navegando para detalhes: ${deal.title}");
-        Get.toNamed(AppRoutes.DEAL_DETAIL, arguments: deal);
+        MainNavigationController.to.navigateToDealDetailPage(deal);
       },
       child: SizedBox(
         width: cardWidth,

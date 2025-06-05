@@ -1,10 +1,11 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 // DealsController não é mais necessário aqui se a busca da AppBar foi removida
 // import 'package:loot_app/app/controllers/deals_controller.dart'; 
 import 'package:loot_app/app/controllers/main_navigation_controller.dart';
-import 'package:loot_app/app/routes/app_routes.dart'; // Para Get.currentRoute (se necessário)
 import 'package:loot_app/app/screens/auth/login_screen_content.dart';
 import 'package:loot_app/app/screens/auth/register_screen_content.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';

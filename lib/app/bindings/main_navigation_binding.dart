@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:loot_app/app/controllers/deal_detail_controller.dart';
 import 'package:loot_app/app/controllers/main_navigation_controller.dart';
 import 'package:loot_app/app/controllers/home_controller.dart';
 import 'package:loot_app/app/controllers/deals_controller.dart';
@@ -18,6 +19,7 @@ class MainNavigationBinding extends Bindings {
 
     Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
     Get.lazyPut<DealsController>(() => DealsController(), fenix: true);
+    Get.lazyPut<DealDetailController>(() => DealDetailController(), fenix: true);
     Get.lazyPut<MonitoringController>(() => MonitoringController(), fenix: true);
     Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
     Get.lazyPut<SettingsController>(() => SettingsController(), fenix: true); // Registra SettingsController

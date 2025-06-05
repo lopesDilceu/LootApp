@@ -4,10 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/controllers/deal_detail_controller.dart';
 import 'package:loot_app/app/services/currency_service.dart';
-import 'package:loot_app/app/widgets/common/app_bar.dart';
+// import 'package:loot_app/app/widgets/common/app_bar.dart';
 
-class DealDetailScreen extends GetView<DealDetailController> {
-  const DealDetailScreen({super.key});
+class DealDetailScreenContent extends GetView<DealDetailController> {
+  const DealDetailScreenContent({super.key});
 
   // ... (_buildInfoRow como antes) ...
   Widget _buildInfoRow(
@@ -51,11 +51,7 @@ class DealDetailScreen extends GetView<DealDetailController> {
     final CurrencyService currencyService =
         CurrencyService.to; // No topo do build ou dentro do Obx
 
-    return Scaffold(
-      appBar: CommonAppBar(
-        title: controller.deal.value?.title ?? "Detalhes da Promoção",
-      ),
-      body: Obx(() {
+    return Obx(() {
         final currentDeal = controller.deal.value;
         if (currentDeal == null) {
           return const Center(
@@ -217,7 +213,6 @@ class DealDetailScreen extends GetView<DealDetailController> {
             ],
           ),
         );
-      }),
-    );
+      });
   }
 }
