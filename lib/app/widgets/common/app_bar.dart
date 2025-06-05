@@ -38,7 +38,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                 'assets/images/logos/logo-text-dark.svg', // Caminho para seu logo SVG
                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 width: 32, height: 32,
-                semanticsLabel: "Logo Loot App",
+                semanticsLabel: "Logo LooT App",
               ),
               tooltip: 'Página Inicial',
               onPressed: () {

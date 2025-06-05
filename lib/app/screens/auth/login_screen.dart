@@ -12,7 +12,7 @@ class LoginScreen extends GetView<LoginController> {
   Widget build(BuildContext context) {
     // O controller é injetado automaticamente pelo GetView através do AuthBinding
     return Scaffold(
-      appBar: const CommonAppBar(title: 'Login - Loot'),
+      appBar: const CommonAppBar(title: 'Login - LooT'),
       body: SingleChildScrollView(
         // Permite rolagem se o conteúdo for maior que a tela
         padding: const EdgeInsets.all(20.0),
@@ -27,7 +27,7 @@ class LoginScreen extends GetView<LoginController> {
                 width: 128,
                 height: 128,
                 colorFilter: null,
-                semanticsLabel: 'Logo Loot App',
+                semanticsLabel: 'Logo LooT App',
               ),
               const SizedBox(height: 30),
               Text(

@@ -32,7 +32,7 @@ class SplashScreen extends GetView<SplashController> {
                     'assets/images/logos/logo-binoculars-text-light.svg', // <<< CAMINHO PARA SEU ARQUIVO SVG
                     width: logoSize,
                     height: logoSize,
-                    semanticsLabel: 'Logo do Loot App',
+                    semanticsLabel: 'Logo do LooT App',
                     // Opcional: se seu SVG precisar de uma cor específica e não tiver cor própria
                     // colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
                   ),
@@ -51,7 +51,7 @@ class SplashScreen extends GetView<SplashController> {
             ),
             const SizedBox(height: 30),
             Text(
-              "Carregando Loot...",
+              "Carregando LooT...",
               style: Get.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),

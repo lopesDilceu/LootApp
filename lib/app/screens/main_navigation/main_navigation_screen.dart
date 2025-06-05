@@ -11,10 +11,13 @@ class MainNavigationScreen extends GetView<MainNavigationController> {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Obx(() => CommonAppBar(
-              title: controller.appBarTitle.value, 
-              isSecondaryPageActive: controller.isSecondaryPageActive, // Passa o estado
-            )),
+        child: Obx(
+          () => CommonAppBar(
+            title: controller.appBarTitle.value,
+            isSecondaryPageActive:
+                controller.isSecondaryPageActive, // Passa o estado
+          ),
+        ),
       ),
       body: Obx(() {
         if (controller.secondaryPageContent.value != null) {
@@ -25,29 +28,32 @@ class MainNavigationScreen extends GetView<MainNavigationController> {
           children: controller.tabContentPages,
         );
       }),
-      bottomNavigationBar: Obx(() => controller.showBottomNavBar.value
-          ? NavigationBar( 
-              onDestinationSelected: controller.changeTabPage,
-              selectedIndex: controller.selectedIndex.value,
-              destinations: const <Widget>[
-                NavigationDestination(
-                  selectedIcon: Icon(Icons.home),
-                  icon: Icon(Icons.home_outlined),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  selectedIcon: Icon(Icons.local_offer), 
-                  icon: Icon(Icons.local_offer_outlined),
-                  label: 'Promoções',
-                ),
-                NavigationDestination( // Nova aba
-                  selectedIcon: Icon(Icons.track_changes), 
-                  icon: Icon(Icons.track_changes_outlined),
-                  label: 'Monitorar',
-                ),
-              ],
-            )
-          : const SizedBox.shrink()),
+      bottomNavigationBar: Obx(
+        () => controller.showBottomNavBar.value
+            ? BottomNavigationBar(
+                type: BottomNavigationBarType.fixed, // Evita rotação do ícone
+                onTap: controller.changeTabPage,
+                currentIndex: controller.selectedIndex.value,
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_outlined),
+                    activeIcon: Icon(Icons.home),
+                    label: '', // Removendo o label
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.local_offer_outlined),
+                    activeIcon: Icon(Icons.local_offer),
+                    label: '', // Removendo o label
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.track_changes_outlined),
+                    activeIcon: Icon(Icons.track_changes),
+                    label: '', // Removendo o label
+                  ),
+                ],
+              )
+            : const SizedBox.shrink(),
+      ),
     );
   }
 }

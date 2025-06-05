@@ -11,7 +11,7 @@ class RegisterScreen extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonAppBar(title: 'Cadastro - Loot'),
+      appBar: const CommonAppBar(title: 'Cadastro - LooT'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(

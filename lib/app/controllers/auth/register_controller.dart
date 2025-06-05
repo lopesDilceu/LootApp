@@ -100,7 +100,7 @@ class RegisterController extends GetxController {
 
           Get.snackbar(
             'Cadastro Realizado!',
-            'Bem-vindo(a) ao Loot, ${authResponse.user.firstName}! Você já está conectado(a).',
+            'Bem-vindo(a) ao LooT, ${authResponse.user.firstName}! Você já está conectado(a).',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green,
             colorText: Colors.white,

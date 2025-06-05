@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // --- PASSO 3: ATUALIZE A CONSTANTE DA FAMÍLIA DA FONTE ---
   static const String _fontFamily =
-      'Roboto'; // Alterado de 'Nunito' para 'Roboto' (ou sua fonte escolhida)
+      'AlumniSansSC'; // Alterado de 'Nunito' para 'AlumniSansSC' (ou sua fonte escolhida)
 
   // --- TEMA CLARO ---
   static final ThemeData lightTheme = ThemeData(

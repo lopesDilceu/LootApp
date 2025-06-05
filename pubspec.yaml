@@ -30,12 +30,19 @@ flutter:
   assets:
     - assets/images/logos/ 
   fonts:
-    - family: Roboto  # Nome da família da fonte que você usará no código
+    - family: OpenSans  # Nome da família da fonte que você usará no código
       fonts:
-        - asset: assets/fonts/Roboto-Regular.ttf
-        - asset: assets/fonts/Roboto-Italic.ttf
+        # - asset: assets/fonts/Roboto-Regular.ttf
+        # - asset: assets/fonts/Roboto-Italic.ttf
+        #   style: italic
+        # - asset: assets/fonts/Roboto-Bold.ttf
+        #   weight: 700 # Bold
+        # - asset: assets/fonts/Roboto-Light.ttf
+        #   weight: 300 # Light
+        - asset: assets/fonts/OpenSans-Regular.ttf
+        - asset: assets/fonts/OpenSans-Italic.ttf
           style: italic
-        - asset: assets/fonts/Roboto-Bold.ttf
+        - asset: assets/fonts/OpenSans-Bold.ttf
           weight: 700 # Bold
-        - asset: assets/fonts/Roboto-Light.ttf
+        - asset: assets/fonts/OpenSans-Light.ttf
           weight: 300 # Light

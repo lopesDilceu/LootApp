@@ -17,7 +17,7 @@ class MainNavigationController extends GetxController {
   static MainNavigationController get to => Get.find();
 
   var selectedIndex = 0.obs; // Para a BottomNavBar
-  final RxString appBarTitle = "Loot".obs;
+  final RxString appBarTitle = "LooT".obs;
   final Rx<Widget?> secondaryPageContent = Rxn<Widget>(); // Para Profile/Settings
   final RxBool showBottomNavBar = true.obs;
 
@@ -28,7 +28,7 @@ class MainNavigationController extends GetxController {
   ];
 
   final List<String> _tabTitles = const [
-    "Loot", "Promoções", "Monitoramento",
+    "LooT", "Promoções", "Monitoramento",
   ];
 
   // Título da página secundária quando ativa
@@ -97,6 +97,6 @@ class MainNavigationController extends GetxController {
     if (selectedIndex.value >= 0 && selectedIndex.value < _tabTitles.length) {
       return _tabTitles[selectedIndex.value];
     }
-    return "Loot App"; // Fallback
+    return "LooT App"; // Fallback
   }
 }
