@@ -11,43 +11,107 @@ import 'package:loot_app/app/screens/auth/register_screen_content.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
 
 
-class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title; 
+class CommonAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool isSecondaryPageActive;
+  final bool showSearchBar;
+  final Function(String)? onSearchSubmitted;
 
   const CommonAppBar({
     super.key,
-    required this.title,
     this.isSecondaryPageActive = false,
+    this.showSearchBar = false,
+    this.onSearchSubmitted,
   });
 
   @override
+  State<CommonAppBar> createState() => _CommonAppBarState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _CommonAppBarState extends State<CommonAppBar> {
+  late final TextEditingController _searchTEC;
+  
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchTEC = TextEditingController();
+    _searchTEC.addListener(() {
+      final hasTextNow = _searchTEC.text.isNotEmpty;
+      print('Texto digitado: ${_searchTEC.text}, hasTextNow: $hasTextNow');
+      if (hasTextNow != _hasText) {
+        setState(() {
+          _hasText = hasTextNow;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchTEC.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService.to;
-    final MainNavigationController mainNavController = MainNavigationController.to;
-    
+    final mainNavController = MainNavigationController.to;
+
     return AppBar(
-      leading: isSecondaryPageActive
+      leading: widget.isSecondaryPageActive
           ? IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               tooltip: "Voltar",
               onPressed: () => mainNavController.closeSecondaryPage(),
             )
-          : IconButton( 
+          : IconButton(
               icon: SvgPicture.asset(
-                'assets/images/logos/logo-text-dark.svg', // Use 'assets/' para mobile
+                'assets/images/logos/logo-text-dark.svg',
                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 semanticsLabel: "Logo Loot App",
               ),
               tooltip: 'Página Inicial',
               onPressed: () => mainNavController.changeTabPage(0),
             ),
-      title: Text(title),
-      centerTitle: true, 
+      title: widget.showSearchBar
+          ? TextField(
+              controller: _searchTEC,
+              autofocus: false,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Buscar promoções...',
+                hintStyle: const TextStyle(color: Colors.white70),
+                border: InputBorder.none,
+                suffixIcon: _hasText
+                    ? IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () {
+                          _searchTEC.clear();
+                          // Se quiser, pode chamar o onSearchSubmitted com string vazia:
+                          if (widget.onSearchSubmitted != null) {
+                            widget.onSearchSubmitted!('');
+                          }
+                        },
+                      )
+                    : const Icon(Icons.search, color: Colors.white),
+              ),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) {
+                if (widget.onSearchSubmitted != null) {
+                  widget.onSearchSubmitted!(value);
+                }
+              },
+            )
+          : null,
+      centerTitle: true,
       actions: <Widget>[
-            GetX<AuthService>(
-              builder: (authCtrl) {
+          GetX<AuthService>(
+            builder: (authCtrl) {
                 List<PopupMenuEntry<String>> items = [];
                 if (authCtrl.isLoggedIn) {
                   items.addAll([
@@ -88,12 +152,9 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                   itemBuilder: (BuildContext context) => items,
                 );
               },
-            ),
-            const SizedBox(width: 8),
-          ],
+          ),
+        const SizedBox(width: 8),
+      ],
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

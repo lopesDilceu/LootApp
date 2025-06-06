@@ -15,43 +15,43 @@ class DealsListScreenContent extends GetView<DealsController> {
       child: Column(
         children: [
           // Barra de Busca NO CORPO DA TELA
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller.searchTEC, // Usa o searchTEC do DealsController
-                    decoration: InputDecoration(
-                      hintText: "Ex: Batman, Call of Duty...",
-                      prefixIcon: const Icon(Icons.search),
-                      border: const OutlineInputBorder(),
-                      suffixIcon: Obx(() => 
-                      controller.searchQuery.value.isNotEmpty // <<< OBSERVA A VARIÁVEL RxString searchQuery
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: controller.clearSearchInScreenAndFetchInitial,
-                            )
-                          : const SizedBox.shrink()),
-                    ),
-                    onSubmitted: (value) {
-                      controller.searchGamesByTitleInScreen(value);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.search),
-                  label: const Text("Buscar"),
-                  onPressed: () {
-                    controller.searchGamesByTitleInScreen(controller.searchTEC.text);
-                    FocusScope.of(context).unfocus(); 
-                  },
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12)),
-                )
-              ],
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+          //   child: Row(
+          //     children: [
+          //       Expanded(
+          //         child: TextField(
+          //           controller: controller.searchTEC, // Usa o searchTEC do DealsController
+          //           decoration: InputDecoration(
+          //             hintText: "Ex: Batman, Call of Duty...",
+          //             prefixIcon: const Icon(Icons.search),
+          //             border: const OutlineInputBorder(),
+          //             suffixIcon: Obx(() => 
+          //             controller.searchQuery.value.isNotEmpty // <<< OBSERVA A VARIÁVEL RxString searchQuery
+          //                 ? IconButton(
+          //                     icon: const Icon(Icons.clear),
+          //                     onPressed: controller.clearSearchInScreenAndFetchInitial,
+          //                   )
+          //                 : const SizedBox.shrink()),
+          //           ),
+          //           onSubmitted: (value) {
+          //             controller.searchGamesByTitleInScreen(value);
+          //           },
+          //         ),
+          //       ),
+          //       const SizedBox(width: 8),
+          //       ElevatedButton.icon(
+          //         icon: const Icon(Icons.search),
+          //         label: const Text("Buscar"),
+          //         onPressed: () {
+          //           controller.searchGamesByTitleInScreen(controller.searchTEC.text);
+          //           FocusScope.of(context).unfocus(); 
+          //         },
+          //         style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12)),
+          //       )
+          //     ],
+          //   ),
+          // ),
           // Botão de Filtro
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),

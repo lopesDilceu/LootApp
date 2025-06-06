@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
@@ -57,39 +59,66 @@ class ListItemDealCardWidget extends StatelessWidget {
             children: [
               // Thumbnail
               Container(
-                width: 110,
-                height: 65,
-                color: Colors.grey[200],
-                child: proxiedImageUrl.isNotEmpty
-                    ? Image.network(
-                        proxiedImageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (ctx, err, st) => const Center(
-                          child: Icon(
-                            Icons.broken_image_outlined,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        loadingBuilder: (ctx, child, progress) {
-                          if (progress == null) return child;
-                          return const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                              ),
-                            ),
-                          );
-                        },
-                      )
-                    : const Center(
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.grey,
-                        ),
+  width: 110,
+  height: 65,
+  child: ClipRRect(
+    borderRadius: BorderRadius.circular(4),
+    child: Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          proxiedImageUrl,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) {
+              // Imagem carregada com sucesso, exibe blur + imagem no centro
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  child, // imagem de fundo
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: Container(
+                        color: Colors.black.withOpacity(0.3),
                       ),
-              ),
+                    ),
+                  ),
+                  Center(
+                    child: Image.network(
+                      proxiedImageUrl,
+                      fit: BoxFit.contain,
+                      width: 110,
+                      height: 65,
+                      errorBuilder: (ctx, err, st) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              // Enquanto carrega, mostra loader sem blur
+              return const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              );
+            }
+          },
+          errorBuilder: (ctx, err, st) => const Center(
+            child: Icon(
+              Icons.image_not_supported_outlined,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
               const SizedBox(width: 12),
               // Deal Info
               Expanded(
