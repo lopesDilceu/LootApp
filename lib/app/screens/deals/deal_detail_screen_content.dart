@@ -49,7 +49,6 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
 
   @override
   Widget build(BuildContext context) {
-    final CurrencyService currencyService = CurrencyService.to;
 
     return Obx(() {
       final currentDeal = controller.deal.value;
@@ -60,6 +59,30 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
       // A imagem principal (controller.displayImageUrl) pode ser diferente do carrossel
       // ou ser a primeira imagem do carrossel. Aqui, está separada.
       final String mainProxiedImageUrl = controller.displayImageUrl;
+
+      String displaySalePrice;
+      String displayNormalPrice = "";
+      Color salePriceColor = Colors.grey[700]!; // Cor de fallback
+
+      if (currentDeal.isLoadingRegionalPrice.value) {
+        displaySalePrice = "Buscando preço regional...";
+      } else if (currentDeal.regionalPriceFetched.value && currentDeal.regionalPriceFormatted.value != null) {
+        displaySalePrice = currentDeal.regionalPriceFormatted.value!;
+        salePriceColor = Colors.green[700]!;
+        // Preço normal regionalizado
+        if (currentDeal.regionalNormalPriceFormatted.value != null && currentDeal.regionalNormalPriceFormatted.value!.isNotEmpty) {
+          displayNormalPrice = currentDeal.regionalNormalPriceFormatted.value!;
+        } else if (currentDeal.normalPriceValue > currentDeal.salePriceValue) { 
+           // Fallback para preço normal USD se regional não veio da GGDeals
+           displayNormalPrice = "\$${currentDeal.normalPriceValue.toStringAsFixed(2)}";
+        }
+      } else {
+        // Fallback para preços USD da CheapShark se o regional não foi buscado ou falhou
+        displaySalePrice = "\$${currentDeal.salePriceValue.toStringAsFixed(2)}";
+        if (currentDeal.normalPriceValue > 0 && currentDeal.normalPriceValue > currentDeal.salePriceValue) {
+          displayNormalPrice = "\$${currentDeal.normalPriceValue.toStringAsFixed(2)}";
+        }
+      }
 
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -242,24 +265,13 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
             ),
             const SizedBox(height: 12),
 
-            _buildInfoRow("Loja", currentDeal.storeName),
-            _buildInfoRow(
-              "Preço em Promoção",
-              currencyService.getFormattedPrice(currentDeal.salePriceValue),
-              valueColor: Colors.green[700],
-              isBold: true,
-            ),
-            _buildInfoRow(
-              "Preço Normal",
-              currencyService.getFormattedPrice(currentDeal.normalPriceValue),
-              valueColor: Colors.grey[700],
-            ),
-            _buildInfoRow(
-              "Você Economiza",
-              "${currentDeal.savingsPercentage.toStringAsFixed(0)}% OFF",
-              valueColor: Colors.redAccent,
-              isBold: true,
-            ),
+            
+            _buildInfoRow("Loja", currentDeal.regionalShopName.value ?? currentDeal.storeName),
+            _buildInfoRow("Preço em Promoção", displaySalePrice, valueColor: salePriceColor, isBold: true),
+            if (displayNormalPrice.isNotEmpty)
+              _buildInfoRow("Preço Normal", displayNormalPrice, valueColor: Colors.grey[700], lineThrough: true),
+            _buildInfoRow("Você Economiza", "${currentDeal.savingsPercentage.toStringAsFixed(0)}% OFF", valueColor: Colors.redAccent, isBold: true),
+            
 
             const Divider(height: 30),
 

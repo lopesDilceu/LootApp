@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/constants/api/api_constants.dart';
 import 'package:loot_app/app/data/models/deal_model.dart'; // Para ApiConstants.imageProxyUrlPrefix
+import 'package:loot_app/app/data/models/ggd_models.dart';
+import 'package:loot_app/app/data/providers/ggd_api_provider.dart';
 import 'package:loot_app/app/data/providers/rawg_api_provider.dart';
 import 'package:loot_app/app/services/user_preferences_service.dart';
 // UserPreferencesService e CurrencyService serão acessados pela UI (DealDetailScreenContent)
@@ -12,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 class DealDetailController extends GetxController {
   final Rxn<DealModel> deal = Rxn<DealModel>();
   final RawgApiProvider _rawgApiProvider = Get.find<RawgApiProvider>(); // Injete/Encontre
+  final GGDotDealsApiProvider _ggdApiProvider = Get.find<GGDotDealsApiProvider>();
   final UserPreferencesService _prefsService = UserPreferencesService.to;
 
   // Para o carrossel de imagens da RAWG
@@ -19,6 +22,9 @@ class DealDetailController extends GetxController {
   final RxBool isLoadingImages = false.obs;
   late PageController imageCarouselController;
   var currentImageIndex = 0.obs; // Para o indicador de página
+
+  RxList<GGDShopInfo> ggdShops = <GGDShopInfo>[].obs; // Cache de lojas GG.deals
+
 
   Worker? _countryChangeListener;
 
@@ -44,17 +50,28 @@ class DealDetailController extends GetxController {
     gameImageUrls.clear(); // Limpa imagens anteriores
     currentImageIndex.value = 0; // Reseta o índice do carrossel
 
+    if (imageCarouselController.hasClients && imageCarouselController.page != 0) {
+      imageCarouselController.jumpToPage(0);
+    }
+
     _countryChangeListener?.dispose();
-    _countryChangeListener = ever(_prefsService.selectedCurrency, (_) { // Ou selectedCountryCode se preferir
-      print("[DealDetailController] Moeda/País mudou. A UI de preço deve se atualizar.");
-      // A UI de preço já observa CurrencyService e UserPreferencesService.
-      // Se precisar buscar algo específico aqui (como preços da GG.deals), faça.
+    _countryChangeListener = ever(_prefsService.selectedCountryCode, (String newCountryCode) {
+      if (isClosed || deal.value == null) return; 
+      print("[DealDetailController] Código do país mudou para: $newCountryCode. Recarregando preço regional para ${deal.value?.title}.");
+      // Reseta o estado do preço regional para forçar uma nova busca
+      deal.value!.regionalPriceFetched.value = false;
+      deal.value!.regionalPriceFormatted.value = null; 
+      deal.value!.regionalNormalPriceFormatted.value = null;
+      deal.value!.regionalShopName.value = null;
+      deal.value!.regionalCurrencySymbol.value = null;
+      _initiateRegionalPriceFetch(); // Busca novamente com o novo país
     });
 
     if (deal.value != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (isClosed) return;
-        _fetchGameScreenshots(); // Busca imagens da RAWG
+        _fetchGameScreenshots(); // Busca imagens da RAWG (se mantiver essa lógica)
+        _initiateRegionalPriceFetch(); // Busca preço regional da GG.deals
       });
     }
   }
@@ -147,6 +164,55 @@ class DealDetailController extends GetxController {
       }
     } else {
       Get.snackbar("Indisponível", "Link da promoção não encontrado.");
+    }
+  }
+
+    Future<void> _initiateRegionalPriceFetch() async {
+    if (deal.value == null) return;
+    
+    deal.value!.isLoadingRegionalPrice.value = true; 
+    if (ggdShops.isEmpty) { // Carrega lojas da GG.deals se ainda não carregadas
+        final shops = await _ggdApiProvider.getShops();
+        if (shops.isNotEmpty) ggdShops.assignAll(shops);
+        if (isClosed || deal.value == null) return; 
+    }
+    await _fetchAndApplyRegionalPrice();
+  }
+
+  Future<void> _fetchAndApplyRegionalPrice() async {
+    if (deal.value == null) { return; }
+    
+    GGDShopPrice? ggdPriceInfo;
+    // Garante que isLoading é falso no fim, mesmo com retornos antecipados
+    try {
+      String? plain = await _ggdApiProvider.getPlainForGame(steamAppId: deal.value!.steamAppID, title: deal.value!.title);
+      if (plain == null) { deal.value!.updateWithGGDPrice(null); return; }
+
+      String? cheapSharkStoreNameUpper = deal.value!.storeName.toUpperCase();
+      String? ggdShopId;
+      // Lógica de mapeamento de loja (pode precisar de mais refinamento)
+      var foundShop = ggdShops.firstWhereOrNull((s) => 
+          s.title.toUpperCase() == cheapSharkStoreNameUpper || s.id.toUpperCase() == cheapSharkStoreNameUpper ||
+          (cheapSharkStoreNameUpper.contains("STEAM") && s.id.toUpperCase() == "STEAM") ||
+          (cheapSharkStoreNameUpper.contains("GOG") && s.id.toUpperCase() == "GOG")
+      );
+      ggdShopId = foundShop?.id;
+      
+      if (ggdShopId == null) {
+        print("[DealDetailController] Loja não mapeada para GG.deals: ${deal.value!.storeName}");
+        deal.value!.updateWithGGDPrice(null); return;
+      }
+      
+      String countryCode = _prefsService.selectedCountryCode.value; // Usa o código do país
+      ggdPriceInfo = await _ggdApiProvider.getRegionalPriceForShop(
+        plain: plain, countryCode: countryCode, shopId: ggdShopId,
+      );
+    } catch (e, stackTrace) {
+      print("[DealDetailController] EXCEÇÃO em _fetchAndApplyRegionalPrice: $e \n$stackTrace");
+    } finally {
+      if (!isClosed && deal.value != null) { 
+        deal.value!.updateWithGGDPrice(ggdPriceInfo);
+      }
     }
   }
 }

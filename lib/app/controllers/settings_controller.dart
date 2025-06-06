@@ -5,58 +5,48 @@ import 'package:loot_app/app/services/user_preferences_service.dart';
 
 class SettingsController extends GetxController {
   final ThemeService _themeService = ThemeService.to;
-  final UserPreferencesService _userPreferencesService = UserPreferencesService.to;
+  final UserPreferencesService _prefsService = UserPreferencesService.to;
 
   // --- Configurações de Tema ---
-  // selectedThemeMode agora é uma referência direta à propriedade reativa do ThemeService
   Rx<ThemeMode> get currentThemeSetting => _themeService.currentAppliedThemeMode;
-  
-  final List<ThemeMode> themeModes = ThemeMode.values; // [system, light, dark]
+  final List<ThemeMode> themeModes = ThemeMode.values;
 
   void changeTheme(ThemeMode? newMode) {
     if (newMode != null) {
-      _themeService.switchThemeMode(newMode); // O ThemeService já atualiza o currentAppliedThemeMode
-      // O Get.snackbar pode ser movido para o switchThemeMode no ThemeService se preferir
+      _themeService.switchThemeMode(newMode);
       Get.snackbar(
-        "Tema Alterado",
-        "O tema do aplicativo foi atualizado.",
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
+        "Tema Alterado", "O tema do aplicativo foi atualizado.",
+        snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 2),
       );
     }
   }
 
   String getThemeModeDisplayName(ThemeMode mode) {
     switch (mode) {
-      case ThemeMode.light:
-        return "Claro";
-      case ThemeMode.dark:
-        return "Escuro";
-      case ThemeMode.system:
-      return "Padrão do Sistema";
+      case ThemeMode.light: return "Claro";
+      case ThemeMode.dark: return "Escuro";
+      case ThemeMode.system: default: return "Padrão do Sistema";
     }
   }
 
-  // --- Configurações de Moeda ---
-  // selectedCurrencyCode agora é uma referência direta à propriedade reativa do UserPreferencesService
-  RxString get currentCurrencySetting => _userPreferencesService.selectedCurrency;
+  // --- Configurações de Região/País (para GG.deals) ---
+  // VVVVVV Alterado de currentCurrencySetting para currentCountrySetting VVVVVV
+  RxString get currentCountrySetting => _prefsService.selectedCountryCode;
+  // VVVVVV Alterado de availableCurrencies para availableCountries VVVVVV
+  List<Map<String, String>> get availableCountries => _prefsService.getSupportedCountriesForGGD();
 
-  List<Map<String, String>> get availableCurrencies => _userPreferencesService.getSupportedCurrencies();
-
-  void changeCurrency(String? newCurrencyCode) {
-    if (newCurrencyCode != null && newCurrencyCode.isNotEmpty) {
-      _userPreferencesService.setSelectedCurrency(newCurrencyCode);
-      // O snackbar pode ser movido para setSelectedCurrency no UserPreferencesService
+  // VVVVVV Alterado de changeCurrency para changeCountry VVVVVV
+  void changeCountry(String? newCountryCode) {
+    if (newCountryCode != null && newCountryCode.isNotEmpty) {
+      _prefsService.setSelectedCountryCode(newCountryCode);
       Get.snackbar(
-        "Moeda Alterada",
-        "A moeda para exibição de preços foi atualizada para $newCurrencyCode.",
+        "Região Alterada", // Mensagem atualizada
+        "A região para exibição de preços foi atualizada para ${newCountryCode.toUpperCase()}.", // Mensagem atualizada
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 2),
       );
-      // AVISO: Você pode precisar de uma forma de notificar outras partes do app
-      // (como listas de deals) para recarregar/reconverter os preços.
-      // Isso pode ser feito com um Get.forceAppUpdate(), ou fazendo seus controllers de deals
-      // ouvirem mudanças em UserPreferencesService.selectedCurrency.
+      // A mudança em _prefsService.selectedCountryCode.value
+      // será ouvida pelos DealsController e DealDetailController.
     }
   }
 }

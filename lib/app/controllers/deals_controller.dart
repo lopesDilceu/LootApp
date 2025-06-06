@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loot_app/app/data/models/deal_model.dart';
+import 'package:loot_app/app/data/models/ggd_models.dart';
 import 'package:loot_app/app/data/models/store_model.dart';
 import 'package:loot_app/app/data/providers/deals_api_provider.dart';
+import 'package:loot_app/app/data/providers/ggd_api_provider.dart';
+import 'package:loot_app/app/services/user_preferences_service.dart';
 // import 'package:loot_app/app/services/user_preferences_service.dart';
 
 class DealsController extends GetxController {
-  final DealsApiProvider _dealsApiProvider = Get.find<DealsApiProvider>();
-  // final UserPreferencesService _prefsService = UserPreferencesService.to;
+  final DealsApiProvider _cheapSharkApiProvider = Get.find<DealsApiProvider>();
+  final GGDotDealsApiProvider _ggdApiProvider = Get.find<GGDotDealsApiProvider>();
+  final UserPreferencesService _prefsService = UserPreferencesService.to;
 
   var dealsList = <DealModel>[].obs;
   var isLoading = true.obs;
@@ -19,6 +23,9 @@ class DealsController extends GetxController {
   var searchQuery = ''.obs; 
   var isSearching = false.obs; 
 
+  var availableStoresCS = <StoreModel>[].obs;
+  var selectedStoreIDsCS = <String>[].obs;
+
   var availableStores = <StoreModel>[].obs;
   var selectedStoreIDs = <String>[].obs;
   var selectedSortBy = 'Deal Rating'.obs;
@@ -29,24 +36,18 @@ class DealsController extends GetxController {
   final TextEditingController upperPriceTEC = TextEditingController();
 
   final ScrollController scrollController = ScrollController();
-  
+  RxList<GGDShopInfo> _ggdShops = <GGDShopInfo>[].obs; // Cache de lojas da GG.deals
+  var isLoadingGGDShops = false.obs;  
 
   @override
   void onInit() {
     super.onInit();
     print("[DealsController] onInit chamado.");
-    fetchStoresForFilter();
-    fetchDeals(isInitialLoad: true); 
+    _loadGGDShopsAndThenFetchInitialDeals();
     scrollController.addListener(_onScroll);
-
+    ever(_prefsService.selectedCountryCode, (_) => _refetchAllRegionalPrices());
     searchTEC.addListener(() {
-      // Atualiza searchQuery apenas se o texto realmente mudou
-      // para evitar loops ou atualizações desnecessárias.
-      if (searchQuery.value != searchTEC.text) {
-        searchQuery.value = searchTEC.text;
-        // Não precisa chamar fetchDeals aqui, apenas atualiza o estado para o Obx do suffixIcon
-        // A busca real acontece no onSubmitted ou no botão de busca.
-      }
+      if (searchQuery.value != searchTEC.text) searchQuery.value = searchTEC.text;
     });
   }
 
@@ -70,7 +71,7 @@ class DealsController extends GetxController {
   
   Future<void> fetchStoresForFilter() async {
     print("[DealsController] Buscando lojas para filtro...");
-    final stores = await _dealsApiProvider.getStores();
+    final stores = await _cheapSharkApiProvider.getStores();
     if (stores.isNotEmpty) availableStores.assignAll(stores);
   }
 
@@ -95,7 +96,7 @@ class DealsController extends GetxController {
     print("[DealsController] Buscando promoções. Query: '$currentSearchTerm', Página: ${currentPage.value}, Filtros: ...");
 
     try {
-      final newDeals = await _dealsApiProvider.getDeals(
+      final cheapSharkDeals = await _cheapSharkApiProvider.getDeals(
         pageNumber: currentPage.value,
         title: currentSearchTerm,
         storeIDs: selectedStoreIDs.isEmpty ? null : List<String>.from(selectedStoreIDs),
@@ -103,11 +104,12 @@ class DealsController extends GetxController {
         lowerPrice: lowerPriceTEC.text.trim().isEmpty ? null : lowerPriceTEC.text.trim(),
         upperPrice: upperPriceTEC.text.trim().isEmpty ? null : upperPriceTEC.text.trim(),
       );
-      if (newDeals.isNotEmpty) {
-        if (isNewContext) dealsList.assignAll(newDeals);
-        else dealsList.addAll(newDeals);
+      if (cheapSharkDeals.isNotEmpty) {
+        if (isNewContext) dealsList.assignAll(cheapSharkDeals);
+        else dealsList.addAll(cheapSharkDeals);
+        _enrichDealsWithRegionalPrices(isNewContext ? dealsList : cheapSharkDeals); 
         currentPage.value++;
-        if (newDeals.length < 30) canLoadMoreDeals.value = false; 
+        if (cheapSharkDeals.length < 30) canLoadMoreDeals.value = false; 
       } else {
         if (isNewContext) dealsList.clear();
         canLoadMoreDeals.value = false;
@@ -150,5 +152,92 @@ class DealsController extends GetxController {
     // Não limpa searchQuery aqui, para permitir limpar filtros mantendo a busca por texto
     fetchDeals(isInitialLoad: true);
   }
+
+  Future<void> _loadGGDShopsAndThenFetchInitialDeals() async {
+    isLoadingGGDShops.value = true;
+    await _loadGGDShops();
+    isLoadingGGDShops.value = false;
+    fetchDeals(isInitialLoad: true); // Busca deals da CheapShark
+  }
+
+  Future<void> _loadGGDShops() async {
+    if (_ggdShops.isNotEmpty) return;
+    final shops = await _ggdApiProvider.getShops();
+    if (shops.isNotEmpty) _ggdShops.assignAll(shops);
+    else print("[DealsController] Nenhuma loja da GG.deals carregada.");
+  }
+
+  Future<void> _enrichDealsWithRegionalPrices(List<DealModel> dealsToEnrich) async {
+    if (_ggdShops.isEmpty && !isLoadingGGDShops.value) { // Tenta carregar se estiver vazia e não carregando
+      print("[DealsController] Tentando carregar lojas GG.deals antes de enriquecer...");
+      await _loadGGDShops();
+    }
+    if (_ggdShops.isEmpty) {
+        print("[DealsController] Lista de lojas GG.deals vazia. Não é possível enriquecer.");
+        dealsToEnrich.forEach((d) => d.updateWithGGDPrice(null));
+        return;
+    }
+    String countryCode = _prefsService.selectedCountryCode.value;
+    print("[DealsController] Enriquecendo ${dealsToEnrich.length} deals para país: $countryCode");
+
+    for (var deal in dealsToEnrich) {
+      if (deal.regionalPriceFetched.value && !deal.isLoadingRegionalPrice.value) continue;
+      // Não precisa de await aqui, deixa as buscas de preço para cada card rodarem em paralelo
+      _fetchAndApplySingleDealRegionalPrice(deal, countryCode);
+    }
+  }
+
+  Future<void> _fetchAndApplySingleDealRegionalPrice(DealModel deal, String countryCode) async {
+    if (deal.isLoadingRegionalPrice.value) return; // Já está buscando
+    deal.isLoadingRegionalPrice.value = true;
+    GGDShopPrice? ggdPriceInfo;
+
+    try {
+      String? plain = await _ggdApiProvider.getPlainForGame(steamAppId: deal.steamAppID, title: deal.title);
+      if (plain == null) { deal.updateWithGGDPrice(null); return; }
+
+      String? cheapSharkStoreNameUpper = deal.storeName.toUpperCase();
+      // Mapeamento de ID da loja da CheapShark para ID da loja da GG.deals
+      String? ggdShopId;
+      switch (deal.storeID) { // Mapeia pelo ID da CheapShark que é mais confiável
+        case '1': ggdShopId = 'steam'; break;
+        case '7': ggdShopId = 'gog'; break;
+        case '25': ggdShopId = 'epic'; break; // Epic Games Store
+        case '11': ggdShopId = 'humblestore'; break;
+        case '2': ggdShopId = 'gamersgate'; break;
+        case '3': ggdShopId = 'greenmangaming'; break;
+        // Adicione mais mapeamentos diretos baseados nos IDs da CheapShark
+        // e os IDs correspondentes da GG.deals (que você pode ver em _ggdShops)
+        default: // Tenta mapear pelo nome se não houver ID direto
+          var foundShop = _ggdShops.firstWhereOrNull((s) => s.title.toUpperCase() == cheapSharkStoreNameUpper);
+          ggdShopId = foundShop?.id;
+      }
+      
+      if (ggdShopId == null) {
+        print("[DealsController] Loja não mapeada para GG.deals: ${deal.storeName} (CS ID: ${deal.storeID})");
+        deal.updateWithGGDPrice(null); return;
+      }
+
+      ggdPriceInfo = await _ggdApiProvider.getRegionalPriceForShop(
+        plain: plain, countryCode: countryCode, shopId: ggdShopId,
+      );
+    } catch (e) {
+      print("[DealsController] Exceção em _fetchAndApplySingleDealRegionalPrice para ${deal.title}: $e");
+    } finally {
+      if (!isClosed) deal.updateWithGGDPrice(ggdPriceInfo);
+    }
+  }
+
+  Future<void> _refetchAllRegionalPrices() async {
+    if (dealsList.isEmpty) return;
+    print("[DealsController] País mudou. Refazendo busca de preços regionais para ${dealsList.length} promoções...");
+    for (var deal in dealsList) {
+      deal.regionalPriceFetched.value = false; // Permite nova busca
+      deal.regionalPriceFormatted.value = null; // Limpa preço antigo
+      // isLoadingRegionalPrice será setado por _fetchAndApplySingleDealRegionalPrice
+    }
+    await _enrichDealsWithRegionalPrices(List<DealModel>.from(dealsList)); // Cria uma nova lista para evitar modificar durante iteração
+  }
+
   Future<void> refreshDealsList() async { await fetchDeals(isRefresh: true); }
 }

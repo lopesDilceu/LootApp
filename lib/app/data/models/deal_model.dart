@@ -1,4 +1,8 @@
 // lib/app/data/models/deal_model.dart
+import 'package:get/get.dart';
+import 'package:loot_app/app/data/models/ggd_models.dart';
+import 'package:loot_app/app/services/user_preferences_service.dart';
+
 class DealModel {
   final String title;
   final String dealID;
@@ -14,6 +18,19 @@ class DealModel {
   final int? releaseDate; // Timestamp Unix
   final String thumb; // URL da imagem thumbnail do jogo
   // Adicione mais campos conforme a necessidade e o que a API CheapShark retorna
+
+    // Getters para converter preços da CheapShark para double
+  double get salePriceValue => double.tryParse(salePrice.replaceAll(',', '.')) ?? 0.0;
+  double get normalPriceValue => double.tryParse(normalPrice.replaceAll(',', '.')) ?? 0.0;
+  double get savingsPercentage => double.tryParse(savings) ?? 0.0;
+
+  // --- Campos Reativos para dados da GG.deals ---
+  final RxnString regionalPriceFormatted = RxnString();     // Ex: "R$ 24,99"
+  final RxnString regionalNormalPriceFormatted = RxnString(); // Ex: "R$ 49,99"
+  final RxnString regionalCurrencySymbol = RxnString();     // Ex: "R$" (pode vir da GG.deals ou UserPrefs)
+  final RxnString regionalShopName = RxnString();         // Nome da loja como retornado pela GG.deals
+  final RxBool isLoadingRegionalPrice = false.obs;         // True enquanto busca preço da GG.deals
+  final RxBool regionalPriceFetched = false.obs;          // True se a busca na GG.deals foi tentada
 
   DealModel({
     required this.title,
@@ -49,10 +66,6 @@ class DealModel {
     );
   }
 
-  // Getters para facilitar o uso dos dados convertidos
-  double get salePriceValue => double.tryParse(salePrice) ?? 0.0;
-  double get normalPriceValue => double.tryParse(normalPrice) ?? 0.0;
-  double get savingsPercentage => double.tryParse(savings) ?? 0.0;
 
   // Helper para obter o nome da loja (requer mapeamento ou chamada à API /stores)
   String get storeName {
@@ -73,5 +86,38 @@ class DealModel {
       // Adicione mais conforme necessário
       default: return 'Loja ID: $storeID';
     }
+  }
+
+    // Método para atualizar este DealModel com os dados de preço regional da GG.deals
+  void updateWithGGDPrice(GGDShopPrice? ggdPrice) {
+    if (ggdPrice != null) {
+      regionalPriceFormatted.value = ggdPrice.priceFormatted;
+      regionalShopName.value = ggdPrice.shopName;
+      
+      // Tenta obter o símbolo da moeda da GG.deals; se não vier, usa o do UserPreferencesService
+      regionalCurrencySymbol.value = ggdPrice.currencySymbol ?? (ggdPrice.currencyCode != null 
+                                        ? UserPreferencesService.to.getCurrencySymbol(ggdPrice.currencyCode!) 
+                                        : null);
+      
+      // Formata o preço normal/antigo da GG.deals
+      if (ggdPrice.priceOld != null) {
+        // Se a GG.deals já fornecer um 'price_old_formatted', use-o diretamente.
+        // Senão, formate aqui:
+        final symbol = regionalCurrencySymbol.value ?? (ggdPrice.currencyCode != null ? UserPreferencesService.to.getCurrencySymbol(ggdPrice.currencyCode!) : '\$');
+        regionalNormalPriceFormatted.value = "$symbol${ggdPrice.priceOld!.toStringAsFixed(2)}";
+      } else {
+        regionalNormalPriceFormatted.value = null;
+      }
+      print("[DealModel] ${title}: Preço regional atualizado para ${regionalPriceFormatted.value}");
+    } else {
+      // Se ggdPrice for nulo (ex: falha na busca na API da GG.deals ou preço não encontrado)
+      regionalPriceFormatted.value = null; 
+      regionalNormalPriceFormatted.value = null;
+      regionalCurrencySymbol.value = null;
+      regionalShopName.value = null; // Mantém o nome da loja da CheapShark como fallback
+      print("[DealModel] ${title}: Não foi possível obter preço regional da GG.deals.");
+    }
+    regionalPriceFetched.value = true; // Marca que a tentativa de busca foi concluída
+    isLoadingRegionalPrice.value = false; // Terminou de carregar (com sucesso ou falha)
   }
 }
