@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart'; // Importe GetStorage
-import 'package:loot_app/app/data/providers/ggd_api_provider.dart';
 import 'package:loot_app/app/routes/app_pages.dart';
 import 'package:loot_app/app/routes/app_routes.dart';
 import 'package:loot_app/app/services/auth/auth_service.dart';
@@ -17,18 +16,26 @@ void main() async {
 }
 
 Future<void> initializeServices() async {
+  print("Inicializando GetStorage...");
   await GetStorage.init();
+  print("GetStorage inicializado.");
 
+  print("Inicializando AuthService...");
   await Get.putAsync<AuthService>(() => AuthService().init());
+  print("AuthService inicializado e pronto.");
 
+  print("Inicializando ThemeService...");
   final themeService = Get.put(ThemeService());
   themeService.initTheme();
+  print("ThemeService inicializado e tema aplicado.");
 
-  Get.put(GGDotDealsApiProvider());
+  print("Inicializando UserPreferencesService..."); // Log antes
   Get.put(UserPreferencesService(),); // Esta linha dispara o onInit() do UserPreferencesService
+  print("UserPreferencesService inicializado."); // Log depois
 
-  // await Get.putAsync<CurrencyService>(() => CurrencyService().initService()); // Chama o initService
+  await Get.putAsync<CurrencyService>(() => CurrencyService().initService()); // Chama o initService
 
+  // ... (seu Get.put para ApiBaseUrl)
 }
 
 class MyApp extends StatelessWidget {

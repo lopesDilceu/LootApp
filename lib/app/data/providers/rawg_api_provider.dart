@@ -1,6 +1,7 @@
 // Exemplo em um novo RawgApiProvider.dart
 import 'package:get/get.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RawgApiProvider extends GetConnect {
   final String _baseUrl = "https://api.rawg.io/api";

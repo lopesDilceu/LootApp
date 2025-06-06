@@ -30,11 +30,11 @@ class SettingsScreenContent extends GetView<SettingsController> {
           const SizedBox(height: 8),
           Obx(() => DropdownButtonFormField<String>(
                 decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 15)),
-                value: controller.currentCountrySetting.value,
-                items: controller.availableCountries.map((Map<String, String> currency) {
+                value: controller.currentCurrencySetting.value,
+                items: controller.availableCurrencies.map((Map<String, String> currency) {
                   return DropdownMenuItem<String>(value: currency['code'], child: Text(currency['name']!));
                 }).toList(),
-                onChanged: controller.changeCountry,
+                onChanged: controller.changeCurrency,
               )),
         ],
       ),

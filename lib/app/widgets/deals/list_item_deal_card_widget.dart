@@ -12,6 +12,7 @@ class ListItemDealCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CurrencyService currencyService = CurrencyService.to;
 
     String imageUrlToUse = deal.thumb; // Fallback para a thumbnail
     if (deal.steamAppID != null && deal.steamAppID!.isNotEmpty) {
@@ -140,46 +141,75 @@ class ListItemDealCardWidget extends StatelessWidget {
                 // No entanto, o GetX geralmente é inteligente o suficiente se getFormattedPrice
                 // internamente acessa essas variáveis Rx.
 
-                if (deal.isLoadingRegionalPrice.value) {
-                  return const SizedBox(width: 60, child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))));
+                if (!currencyService.ratesInitialized.value &&
+                    currencyService.isLoadingRates.value) {
+                  return const SizedBox(
+                    width: 60,
+                    child: Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  );
                 }
 
-                String displaySalePrice;
-                String displayNormalPrice = ""; // Inicializa como vazia
-                Color salePriceColor = Colors.grey[700]!; // Cor de fallback
-
-                if (deal.regionalPriceFetched.value && deal.regionalPriceFormatted.value != null) {
-                  displaySalePrice = deal.regionalPriceFormatted.value!;
-                  salePriceColor = Colors.green[700]!; 
-                  // Usa o preço normal regionalizado se disponível
-                  if (deal.regionalNormalPriceFormatted.value != null && deal.regionalNormalPriceFormatted.value!.isNotEmpty) {
-                     displayNormalPrice = deal.regionalNormalPriceFormatted.value!;
-                  } else if (deal.normalPriceValue > deal.salePriceValue) { 
-                     // Fallback para preço normal USD se regional não veio da GGDeals
-                     displayNormalPrice = "\$${deal.normalPriceValue.toStringAsFixed(2)}";
-                  }
-                } else {
-                  // Fallback para preços USD da CheapShark se o regional não foi buscado ou falhou
-                  displaySalePrice = "\$${deal.salePriceValue.toStringAsFixed(2)}";
-                  if (deal.normalPriceValue > 0 && deal.normalPriceValue > deal.salePriceValue) {
-                    displayNormalPrice = "\$${deal.normalPriceValue.toStringAsFixed(2)}";
-                  }
+                String displaySalePrice = currencyService.getFormattedPrice(
+                  deal.salePriceValue,
+                );
+                String displayNormalPrice = "";
+                if (deal.normalPriceValue > 0 &&
+                    deal.normalPriceValue > deal.salePriceValue) {
+                  displayNormalPrice = currencyService.getFormattedPrice(
+                    deal.normalPriceValue,
+                  );
                 }
 
                 return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Ajuste para alinhar melhor
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(displaySalePrice, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: salePriceColor)),
+                    Text(
+                      displaySalePrice,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize:
+                            16, // Ligeiramente menor para caber melhor com símbolos longos
+                        color: Colors.green[700],
+                      ),
+                    ),
                     if (displayNormalPrice.isNotEmpty)
-                      Text(displayNormalPrice, style: TextStyle(decoration: TextDecoration.lineThrough, fontSize: 10, color: Colors.grey[600])),
+                      Text(
+                        displayNormalPrice,
+                        style: TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          fontSize: 10, // Ligeiramente menor
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    // O widget de porcentagem de economia pode continuar como estava
                     if (deal.savingsPercentage > 0)
                       Padding(
                         padding: const EdgeInsets.only(top: 3.0),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(3)),
-                          child: Text("-${deal.savingsPercentage.toStringAsFixed(0)}%", style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            "-${deal.savingsPercentage.toStringAsFixed(0)}%",
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                   ],

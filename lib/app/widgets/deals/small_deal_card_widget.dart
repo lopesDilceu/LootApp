@@ -12,6 +12,7 @@ class SmallDealCardWidget extends StatelessWidget {
 
   @override
 Widget build(BuildContext context) {
+  final CurrencyService currencyService = CurrencyService.to;
 
   String imageUrlToUse = deal.thumb; // Fallback para a thumbnail
     if (deal.steamAppID != null && deal.steamAppID!.isNotEmpty) {
@@ -156,31 +157,20 @@ Widget build(BuildContext context) {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Obx(() {
-                          if (deal.isLoadingRegionalPrice.value) {
-                            return const SizedBox(width: 60, child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))));
+                          if (!currencyService.ratesInitialized.value &&
+                              currencyService.isLoadingRates.value) {
+                            return const SizedBox(
+                              height: 16,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.5,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
                           }
-
-                          String displaySalePrice;
-                          String displayNormalPrice = ""; // Inicializa como vazia
-                          Color salePriceColor = Colors.grey[700]!; // Cor de fallback
-
-                          if (deal.regionalPriceFetched.value && deal.regionalPriceFormatted.value != null) {
-                            displaySalePrice = deal.regionalPriceFormatted.value!;
-                            salePriceColor = Colors.green[700]!; 
-                            // Usa o preço normal regionalizado se disponível
-                            if (deal.regionalNormalPriceFormatted.value != null && deal.regionalNormalPriceFormatted.value!.isNotEmpty) {
-                              displayNormalPrice = deal.regionalNormalPriceFormatted.value!;
-                            } else if (deal.normalPriceValue > deal.salePriceValue) { 
-                              // Fallback para preço normal USD se regional não veio da GGDeals
-                              displayNormalPrice = "\$${deal.normalPriceValue.toStringAsFixed(2)}";
-                            }
-                          } else {
-                            // Fallback para preços USD da CheapShark se o regional não foi buscado ou falhou
-                            displaySalePrice = "\$${deal.salePriceValue.toStringAsFixed(2)}";
-                            if (deal.normalPriceValue > 0 && deal.normalPriceValue > deal.salePriceValue) {
-                              displayNormalPrice = "\$${deal.normalPriceValue.toStringAsFixed(2)}";
-                            }
-                          }
+                          String displaySalePrice =
+                              currencyService.getFormattedPrice(deal.salePriceValue);
                           return Text(
                             displaySalePrice,
                             style: const TextStyle(
