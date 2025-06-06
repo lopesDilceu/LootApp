@@ -62,69 +62,16 @@ class LoginController extends GetxController {
   }
 
   // Método para realizar o login
-  Future<void> loginUser() async {
-    if (loginFormKey.currentState!.validate()) {
+    Future<void> loginUser() async {
+    if (loginFormKey.currentState?.validate() ?? false) {
       isLoading.value = true;
-      print(
-        "[LoginController] Formulário validado. Chamando _authApiProvider.login().",
+      bool success = await AuthService.to.loginWithEmail(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
-      try {
-        // _authApiProvider.login() agora retorna AuthResponse?
-        AuthResponse? authResponse = await _authApiProvider.login(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim(),
-        );
-
-        print(
-          "[LoginController] authResponse recebido do provider: ${authResponse == null ? 'NULO' : 'RECEBIDO'}",
-        );
-
-        if (authResponse != null) {
-          print(
-            "[LoginController] Login BEM-SUCEDIDO via provider. Chamando AuthService.to.loginUserSession().",
-          );
-          // VVVVVV ESTA É A CHAMADA CRUCIAL VVVVVV
-          await AuthService.to.loginUserSession(
-            authResponse.user,
-            authResponse.token,
-          );
-          // VVVVVV FIM DA CHAMADA CRUCIAL VVVVVV
-          print(
-            "[LoginController] AuthService.to.loginUserSession() CONCLUÍDO.",
-          );
-
-          Get.snackbar(
-            'Sucesso!',
-            'Login realizado com sucesso. Bem-vindo(a) ${authResponse.user.firstName}!',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-          );
-          // Navega para a tela principal LOGADA (ex: DealsListScreen)
-          Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 0});
-        } else {
-          print(
-            "[LoginController] Login FALHOU: _authApiProvider.login() retornou null.",
-          );
-          // O AuthApiProvider já deve ter mostrado um Snackbar de erro se authResponse for null.
-        }
-      } catch (e, stackTrace) {
-        print(
-          "[LoginController] EXCEÇÃO ao chamar _authApiProvider.login() ou AuthService: $e",
-        );
-        print("[LoginController] StackTrace da exceção: $stackTrace");
-        Get.snackbar(
-          'Erro de Login',
-          'Ocorreu um erro: ${e.toString()}',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      } finally {
-        isLoading.value = false;
-      }
-    } else {
-      print("[LoginController] Formulário INVÁLIDO.");
+      // Se sucesso, o listener no AuthService já cuidará da navegação
+      // Se não, o AuthService já mostrou um snackbar de erro
+      isLoading.value = false;
     }
   }
 

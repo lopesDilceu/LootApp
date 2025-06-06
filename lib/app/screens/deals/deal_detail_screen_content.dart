@@ -126,71 +126,26 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
                       onPageChanged: (index) {
                         controller.currentImageIndex.value = index;
                       },
-                      // itemBuilder: (context, index) {
-                      //   String originalImageUrl =
-                      //       controller.gameImageUrls[index];
-                      //   String proxiedScreenshotUrl = '';
-                      //   if (originalImageUrl.isNotEmpty) {
-                      //     proxiedScreenshotUrl =
-                      //         "${ApiConstants.imageProxyUrlPrefix}${Uri.encodeComponent(originalImageUrl)}";
-                      //   }
-                      //   return Padding(
-                      //     padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      //     child: ClipRRect(
-                      //       borderRadius: BorderRadius.circular(8.0),
-                      //       child: proxiedScreenshotUrl.isNotEmpty
-                      //           ? Image.network(
-                      //               proxiedScreenshotUrl,
-                      //               fit: BoxFit.contain,
-                      //               errorBuilder: (c, e, s) => const Icon(
-                      //                 Icons.broken_image,
-                      //                 color: Colors.grey,
-                      //               ),
-                      //               loadingBuilder: (c, child, progress) =>
-                      //                   progress == null
-                      //                   ? child
-                      //                   : const Center(
-                      //                       child: CircularProgressIndicator(),
-                      //                     ),
-                      //             )
-                      //           : const Icon(
-                      //               Icons.image_not_supported,
-                      //               color: Colors.grey,
-                      //             ),
-                      //     ),
-                      //   );
-                      // },
                       itemBuilder: (context, index) {
-                        String originalImageUrlFromCarousel =
+                        String originalImageUrl =
                             controller.gameImageUrls[index];
-
-                        // VVVVVV ALTERAÇÃO PARA TESTE SEM PROXY VVVVVV
-                        // String urlParaExibirNoCarrossel = "${ApiConstants.imageProxyUrlPrefix}${Uri.encodeComponent(originalImageUrlFromCarousel)}";
-                        String urlParaExibirNoCarrossel =
-                            originalImageUrlFromCarousel; // USA A URL ORIGINAL DIRETAMENTE
-                        print(
-                          "[DealDetailScreen_Carousel] Testando URL direta (sem proxy): $urlParaExibirNoCarrossel",
-                        );
-                        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+                        String proxiedScreenshotUrl = '';
+                        if (originalImageUrl.isNotEmpty) {
+                          proxiedScreenshotUrl =
+                              "${ApiConstants.imageProxyUrlPrefix}${Uri.encodeComponent(originalImageUrl)}";
+                        }
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
-                            child: urlParaExibirNoCarrossel.isNotEmpty
+                            child: proxiedScreenshotUrl.isNotEmpty
                                 ? Image.network(
-                                    urlParaExibirNoCarrossel,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (c, e, s) {
-                                      print(
-                                        "[DealDetailScreen_Carousel] Erro ao carregar imagem DIRETA: $e - URL: $urlParaExibirNoCarrossel",
-                                      );
-                                      return const Icon(
-                                        Icons.broken_image,
-                                        color: Colors.grey,
-                                        size: 50,
-                                      );
-                                    },
+                                    proxiedScreenshotUrl,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (c, e, s) => const Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                    ),
                                     loadingBuilder: (c, child, progress) =>
                                         progress == null
                                         ? child
@@ -201,11 +156,56 @@ class DealDetailScreenContent extends GetView<DealDetailController> {
                                 : const Icon(
                                     Icons.image_not_supported,
                                     color: Colors.grey,
-                                    size: 50,
                                   ),
                           ),
                         );
                       },
+                      // itemBuilder: (context, index) {
+                      //   String originalImageUrlFromCarousel =
+                      //       controller.gameImageUrls[index];
+
+                      //   // VVVVVV ALTERAÇÃO PARA TESTE SEM PROXY VVVVVV
+                      //   // String urlParaExibirNoCarrossel = "${ApiConstants.imageProxyUrlPrefix}${Uri.encodeComponent(originalImageUrlFromCarousel)}";
+                      //   String urlParaExibirNoCarrossel =
+                      //       originalImageUrlFromCarousel; // USA A URL ORIGINAL DIRETAMENTE
+                      //   print(
+                      //     "[DealDetailScreen_Carousel] Testando URL direta (sem proxy): $urlParaExibirNoCarrossel",
+                      //   );
+                      //   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+                      //   return Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      //     child: ClipRRect(
+                      //       borderRadius: BorderRadius.circular(8.0),
+                      //       child: urlParaExibirNoCarrossel.isNotEmpty
+                      //           ? Image.network(
+                      //               urlParaExibirNoCarrossel,
+                      //               fit: BoxFit.cover,
+                      //               errorBuilder: (c, e, s) {
+                      //                 print(
+                      //                   "[DealDetailScreen_Carousel] Erro ao carregar imagem DIRETA: $e - URL: $urlParaExibirNoCarrossel",
+                      //                 );
+                      //                 return const Icon(
+                      //                   Icons.broken_image,
+                      //                   color: Colors.grey,
+                      //                   size: 50,
+                      //                 );
+                      //               },
+                      //               loadingBuilder: (c, child, progress) =>
+                      //                   progress == null
+                      //                   ? child
+                      //                   : const Center(
+                      //                       child: CircularProgressIndicator(),
+                      //                     ),
+                      //             )
+                      //           : const Icon(
+                      //               Icons.image_not_supported,
+                      //               color: Colors.grey,
+                      //               size: 50,
+                      //             ),
+                      //     ),
+                      //   );
+                      // },
                     ),
                   ),
                   if (controller.gameImageUrls.length > 1) ...[

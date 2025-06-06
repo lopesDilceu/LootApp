@@ -14,9 +14,6 @@ class AuthMiddleware extends GetMiddleware {
     final AuthService authService = AuthService.to; 
 
     // Log para verificar se o middleware está rodando e o estado de login
-    print("[AuthMiddleware] Rota interceptada: $route");
-    print("[AuthMiddleware] AuthService inicializado: ${authService.isServiceInitialized}");
-    print("[AuthMiddleware] Usuário está logado (isLoggedIn): ${authService.isLoggedIn}"); // Ou authService.isAuthenticated.value
 
     if (!authService.isLoggedIn) { // Ou !authService.isAuthenticated.value
       // Opcional: Salvar a rota que o usuário tentou acessar para redirecionar de volta após o login

@@ -80,28 +80,28 @@ class DealDetailController extends GetxController {
       fetchedImages.add(steamHeaderUrl);
       print("[DealDetailController] Adicionada Steam header.jpg: $steamHeaderUrl");
     }
-
+    // COMENTADO PARA NÃO GASTAR REQUISIÇÃO
     // 2. Busca screenshots da RAWG
-    int? rawgGameId;
-    if (deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
-      rawgGameId = await _rawgApiProvider.findRawgGameIdBySteamId(deal.value!.steamAppID!);
-    }
-    if (rawgGameId == null) { 
-      rawgGameId = await _rawgApiProvider.findRawgGameIdByTitle(deal.value!.title);
-    }
+    // int? rawgGameId;
+    // if (deal.value!.steamAppID != null && deal.value!.steamAppID!.isNotEmpty) {
+    //   rawgGameId = await _rawgApiProvider.findRawgGameIdBySteamId(deal.value!.steamAppID!);
+    // }
+    // if (rawgGameId == null) { 
+    //   rawgGameId = await _rawgApiProvider.findRawgGameIdByTitle(deal.value!.title);
+    // }
     
-    if (rawgGameId != null) {
-      final screenshots = await _rawgApiProvider.getGameScreenshots(rawgGameId);
-      if (screenshots.isNotEmpty) {
-        for (var screenshotUrl in screenshots) {
-          // Adiciona apenas se não for uma duplicata da header.jpg (pouco provável, mas seguro)
-          if (!fetchedImages.contains(screenshotUrl)) {
-            fetchedImages.add(screenshotUrl);
-          }
-        }
-        print("[DealDetailController] ${screenshots.length} screenshots da RAWG adicionadas.");
-      }
-    }
+    // if (rawgGameId != null) {
+    //   final screenshots = await _rawgApiProvider.getGameScreenshots(rawgGameId);
+    //   if (screenshots.isNotEmpty) {
+    //     for (var screenshotUrl in screenshots) {
+    //       // Adiciona apenas se não for uma duplicata da header.jpg (pouco provável, mas seguro)
+    //       if (!fetchedImages.contains(screenshotUrl)) {
+    //         fetchedImages.add(screenshotUrl);
+    //       }
+    //     }
+    //     print("[DealDetailController] ${screenshots.length} screenshots da RAWG adicionadas.");
+    //   }
+    // }
     
     // 3. Fallback final para a thumb se a lista ainda estiver vazia
     if (fetchedImages.isEmpty && deal.value!.thumb.isNotEmpty){

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "440977899070",
+    "project_id": "loot-app-e7eae",
+    "storage_bucket": "loot-app-e7eae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440977899070:android:473ef2841ea6dfb3f5db6f",
+        "android_client_info": {
+          "package_name": "com.example.loot_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDp0VdEUZje4rJ70C1jikCqccd9-16JLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

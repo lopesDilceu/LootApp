@@ -30,7 +30,7 @@ class SplashController extends GetxController {
       await Future.delayed(const Duration(seconds: 1)); 
 
       final authService = AuthService.to;
-      print("[SplashController] AuthService instance obtained. Initialized: ${authService.isServiceInitialized}, LoggedIn: ${authService.isAuthenticated}");
+      print("[SplashController] AuthService instance obtained. Initialized: , LoggedIn: ${authService.isAuthenticated}");
 
       if (authService.isAuthenticated.value) {
         print("[SplashController] Usuário LOGADO...");

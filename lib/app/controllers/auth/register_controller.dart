@@ -77,50 +77,17 @@ class RegisterController extends GetxController {
   }
   // --- Fim Validadores ---
 
-  Future<void> registerUser() async {
-    if (registerFormKey.currentState!.validate()) {
+    Future<void> registerUser() async {
+    if (registerFormKey.currentState?.validate() ?? false) {
       isLoading.value = true;
-      print("[RegisterController] Formulário validado. Chamando _authApiProvider.register().");
-      try {
-        AuthResponse? authResponse = await _authApiProvider.register(
-          firstName: firstNameController.text.trim(),
-          lastName: lastNameController.text.trim(),
-          email: emailController.text.trim(),
-          password: passwordController.text,
-          role: Role.user, // Ou conforme sua lógica
-        );
-
-        print("[RegisterController] authResponse recebido do provider: ${authResponse == null ? 'NULO' : 'RECEBIDO'}");
-
-        if (authResponse != null) {
-          print("[RegisterController] Cadastro BEM-SUCEDIDO via provider. Chamando AuthService.to.loginUserSession().");
-          // VVVVVV ESTA É A CHAMADA CRUCIAL VVVVVV
-          await AuthService.to.loginUserSession(authResponse.user, authResponse.token);
-          // VVVVVV FIM DA CHAMADA CRUCIAL VVVVVV
-          print("[RegisterController] AuthService.to.loginUserSession() CONCLUÍDO.");
-
-          Get.snackbar(
-            'Cadastro Realizado!',
-            'Bem-vindo(a) ao LooT, ${authResponse.user.firstName}! Você já está conectado(a).',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 4),
-          );
-          // Navega para a tela principal LOGADA (ex: DealsListScreen)
-          Get.offAllNamed(AppRoutes.MAIN_NAVIGATION, arguments: {'initialTabIndex': 1});
-        } else {
-          print("[RegisterController] Cadastro FALHOU: _authApiProvider.register() retornou null.");
-          // O AuthApiProvider já deve ter mostrado um Snackbar de erro.
-        }
-      } catch (e, stackTrace) {
-        print("[RegisterController] EXCEÇÃO ao chamar _authApiProvider.register() ou AuthService: $e");
-        print("[RegisterController] StackTrace da exceção: $stackTrace");
-        Get.snackbar('Erro no Cadastro', 'Ocorreu um erro inesperado. Tente novamente.',
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
-      } finally {
-        isLoading.value = false;
-      }
+      bool success = await AuthService.to.registerWithEmail(
+        firstNameController.text.trim(),
+        lastNameController.text.trim(),
+        emailController.text.trim(),
+        passwordController.text,
+      );
+      // Se sucesso, o listener no AuthService já cuidará da navegação
+      isLoading.value = false;
     }
   }
 
